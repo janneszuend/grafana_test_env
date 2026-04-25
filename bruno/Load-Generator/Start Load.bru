@@ -1,0 +1,21 @@
+meta {
+  name: Start Load
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{loadGeneratorUrl}}/api/load/start
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "scenario": "HAPPY_PATH",
+    "requestsPerSecond": 5,
+    "durationSeconds": 60,
+    "concurrency": 3,
+    "productId": "prod-001"
+  }
+}

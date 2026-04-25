@@ -1,0 +1,23 @@
+meta {
+  name: Notification Failure Order
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{orderServiceUrl}}/api/orders
+  body: json
+  auth: none
+}
+
+headers {
+  X-Simulate-Error: true
+}
+
+body:json {
+  {
+    "productId": "prod-001",
+    "quantity": 1,
+    "customerEmail": "test@example.com"
+  }
+}

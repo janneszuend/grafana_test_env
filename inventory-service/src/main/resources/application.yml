@@ -1,0 +1,25 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: inventory-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      service: ${spring.application.name}
+
+logging:
+  pattern:
+    console: "%d{ISO8601} [%thread] %-5level %logger{36} traceId=%X{trace_id} spanId=%X{span_id} - %msg%n"

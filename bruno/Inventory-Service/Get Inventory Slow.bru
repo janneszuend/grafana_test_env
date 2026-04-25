@@ -1,0 +1,15 @@
+meta {
+  name: Get Inventory Slow
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{inventoryServiceUrl}}/api/inventory/:productId?simulateDelay=true
+  body: none
+  auth: none
+}
+
+params:path {
+  productId: prod-001
+}

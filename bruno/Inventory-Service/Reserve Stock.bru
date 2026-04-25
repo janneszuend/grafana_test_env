@@ -1,0 +1,22 @@
+meta {
+  name: Reserve Stock
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{inventoryServiceUrl}}/api/inventory/:productId/reserve
+  body: json
+  auth: none
+}
+
+params:path {
+  productId: prod-001
+}
+
+body:json {
+  {
+    "quantity": 1,
+    "orderId": "test-order-001"
+  }
+}

@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: order-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      service: ${spring.application.name}
+
+logging:
+  pattern:
+    console: "%d{ISO8601} [%thread] %-5level %logger{36} traceId=%X{trace_id} spanId=%X{span_id} - %msg%n"
+
+services:
+  inventory:
+    url: ${INVENTORY_SERVICE_URL:http://localhost:8081}
+    timeout-ms: 3000
+  notification:
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8082}
+    timeout-ms: 2000

@@ -1,0 +1,19 @@
+meta {
+  name: Happy Path Order
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{orderServiceUrl}}/api/orders
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "productId": "prod-001",
+    "quantity": 1,
+    "customerEmail": "test@example.com"
+  }
+}

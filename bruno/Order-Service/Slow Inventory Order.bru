@@ -1,0 +1,19 @@
+meta {
+  name: Slow Inventory Order
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{orderServiceUrl}}/api/orders?simulateDelay=true
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "productId": "prod-001",
+    "quantity": 1,
+    "customerEmail": "test@example.com"
+  }
+}

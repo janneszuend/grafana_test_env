@@ -1,0 +1,18 @@
+meta {
+  name: Chaos Test
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{loadGeneratorUrl}}/api/load/scenarios/chaos
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "durationSeconds": 120,
+    "errorMixPercent": 30
+  }
+}

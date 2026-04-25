@@ -1,0 +1,20 @@
+meta {
+  name: Spike Test
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{loadGeneratorUrl}}/api/load/scenarios/spike
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "peakRps": 50,
+    "rampUpSeconds": 10,
+    "sustainSeconds": 30,
+    "rampDownSeconds": 10
+  }
+}

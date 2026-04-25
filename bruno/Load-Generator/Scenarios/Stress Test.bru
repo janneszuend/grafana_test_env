@@ -1,0 +1,20 @@
+meta {
+  name: Stress Test
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{loadGeneratorUrl}}/api/load/scenarios/stress
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "startRps": 5,
+    "stepRps": 10,
+    "stepDurationSeconds": 15,
+    "maxRps": 50
+  }
+}

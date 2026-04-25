@@ -1,0 +1,20 @@
+meta {
+  name: Send Notification
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{notificationServiceUrl}}/api/notifications
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "type": "ORDER_CONFIRMATION",
+    "recipient": "test@example.com",
+    "orderId": "test-order-001",
+    "payload": "Your order has been confirmed"
+  }
+}

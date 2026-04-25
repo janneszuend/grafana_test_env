@@ -1,0 +1,15 @@
+meta {
+  name: Get Inventory
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{inventoryServiceUrl}}/api/inventory/:productId
+  body: none
+  auth: none
+}
+
+params:path {
+  productId: prod-001
+}

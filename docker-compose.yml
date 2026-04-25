@@ -1,0 +1,70 @@
+services:
+
+  alloy:
+    image: grafana/alloy:latest
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "12345:12345"
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: run /etc/alloy/config.alloy --server.http.listen-addr=0.0.0.0:12345
+    env_file: .env
+    restart: unless-stopped
+
+  order-service:
+    build: ./order-service
+    ports: ["8080:8080"]
+    environment:
+      OTEL_SERVICE_NAME: order-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_TRACES_EXPORTER: otlp
+      INVENTORY_SERVICE_URL: http://inventory-service:8081
+      NOTIFICATION_SERVICE_URL: http://notification-service:8082
+    depends_on: [alloy, inventory-service, notification-service]
+
+  inventory-service:
+    build: ./inventory-service
+    ports: ["8081:8081"]
+    environment:
+      OTEL_SERVICE_NAME: inventory-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_TRACES_EXPORTER: otlp
+    depends_on: [alloy]
+
+  notification-service:
+    build: ./notification-service
+    ports: ["8082:8082"]
+    environment:
+      OTEL_SERVICE_NAME: notification-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_TRACES_EXPORTER: otlp
+    depends_on: [alloy]
+
+  load-generator:
+    build: ./load-generator
+    ports: ["8090:8090"]
+    environment:
+      OTEL_SERVICE_NAME: load-generator
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_TRACES_EXPORTER: otlp
+      ORDER_SERVICE_URL: http://order-service:8080
+    depends_on: [alloy, order-service]
+
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    depends_on: [order-service, inventory-service]

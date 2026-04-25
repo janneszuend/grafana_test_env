@@ -1,0 +1,24 @@
+meta {
+  name: Send Notification Error
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{notificationServiceUrl}}/api/notifications
+  body: json
+  auth: none
+}
+
+headers {
+  X-Simulate-Error: true
+}
+
+body:json {
+  {
+    "type": "ORDER_CONFIRMATION",
+    "recipient": "test@example.com",
+    "orderId": "test-order-001",
+    "payload": "Your order has been confirmed"
+  }
+}

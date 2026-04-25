@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Commerce PoC</title>
+  <script src="/tracing.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #0f1117; color: #e0e0e0; padding: 2rem; }
+    h1 { font-size: 1.4rem; margin-bottom: 1.5rem; color: #fff; }
+    h2 { font-size: 1rem; margin-bottom: 0.75rem; color: #a0a0a0; text-transform: uppercase; letter-spacing: 0.05em; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; max-width: 960px; }
+    .card { background: #1a1d27; border: 1px solid #2a2d37; border-radius: 8px; padding: 1.25rem; }
+    .products { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .product-btn { padding: 0.4rem 0.8rem; border: 1px solid #3a3d47; border-radius: 4px; background: #22252f;
+                   color: #e0e0e0; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; }
+    .product-btn:hover { border-color: #6366f1; }
+    .product-btn.selected { background: #6366f1; border-color: #6366f1; color: #fff; }
+    .product-btn.out-of-stock { border-color: #ef4444; color: #ef4444; }
+    .product-btn.out-of-stock.selected { background: #ef4444; color: #fff; }
+    .actions { display: flex; flex-direction: column; gap: 0.5rem; }
+    .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem;
+           font-weight: 500; transition: all 0.15s; }
+    .btn-primary { background: #6366f1; color: #fff; }
+    .btn-primary:hover { background: #5558e6; }
+    .btn-warn { background: #f59e0b; color: #000; }
+    .btn-warn:hover { background: #d97706; }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-ghost { background: transparent; border: 1px solid #3a3d47; color: #a0a0a0; }
+    .btn-ghost:hover { border-color: #6366f1; color: #e0e0e0; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .options { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .option { display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; color: #a0a0a0; }
+    .option input { accent-color: #6366f1; }
+    #output { background: #12141c; border: 1px solid #2a2d37; border-radius: 8px; padding: 1rem;
+              font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; white-space: pre-wrap;
+              max-height: 400px; overflow-y: auto; line-height: 1.5; grid-column: 1 / -1; }
+    .stock-display { font-size: 0.8rem; color: #a0a0a0; margin-top: 0.75rem; }
+    .stock-item { display: flex; justify-content: space-between; padding: 0.25rem 0;
+                  border-bottom: 1px solid #2a2d37; }
+    .stock-value { font-family: 'SF Mono', monospace; }
+    .stock-value.zero { color: #ef4444; }
+    .log-success { color: #4ade80; }
+    .log-error { color: #ef4444; }
+    .log-info { color: #60a5fa; }
+    .log-time { color: #6b7280; }
+  </style>
+</head>
+<body>
+  <h1>E-Commerce Order Processing</h1>
+  <div class="grid">
+    <div class="card">
+      <h2>Place Order</h2>
+      <div class="products" id="products"></div>
+      <div class="options">
+        <label class="option"><input type="checkbox" id="slowInventory"> Slow Inventory</label>
+        <label class="option"><input type="checkbox" id="notifError"> Notification Fail</label>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="placeOrder()">Place Order</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Inventory</h2>
+      <div id="stock" class="stock-display">Loading...</div>
+      <div class="actions" style="margin-top: 0.75rem;">
+        <button class="btn btn-ghost" onclick="refreshStock()">Refresh</button>
+        <button class="btn btn-warn" onclick="resetInventory()">Reset Stock</button>
+      </div>
+    </div>
+
+    <div id="output"><span class="log-info">Ready. Select a product and place an order.</span></div>
+  </div>
+
+  <script>
+    const API = '/api';
+    let selectedProduct = 'prod-001';
+    const productInfo = {
+      'prod-001': { name: 'MacBook Pro 14', stock: '?' },
+      'prod-002': { name: 'iPhone 16 Pro', stock: '?' },
+      'prod-003': { name: 'AirPods Pro', stock: '?' },
+    };
+
+    function initProducts() {
+      const container = document.getElementById('products');
+      Object.entries(productInfo).forEach(([id, info]) => {
+        const btn = document.createElement('button');
+        btn.className = 'product-btn' + (id === selectedProduct ? ' selected' : '');
+        btn.textContent = info.name;
+        btn.dataset.id = id;
+        btn.onclick = () => selectProduct(id);
+        container.appendChild(btn);
+      });
+    }
+
+    function selectProduct(id) {
+      selectedProduct = id;
+      document.querySelectorAll('.product-btn').forEach(b => {
+        b.classList.toggle('selected', b.dataset.id === id);
+      });
+    }
+
+    function log(msg, type = 'info') {
+      const el = document.getElementById('output');
+      const time = new Date().toLocaleTimeString();
+      const cls = type === 'ok' ? 'log-success' : type === 'error' ? 'log-error' : 'log-info';
+      el.innerHTML += `\n<span class="log-time">${time}</span>  <span class="${cls}">${msg}</span>`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    async function placeOrder() {
+      const slow = document.getElementById('slowInventory').checked;
+      const notifErr = document.getElementById('notifError').checked;
+      const qs = slow ? '?simulateDelay=true' : '';
+      const headers = { 'Content-Type': 'application/json' };
+      if (notifErr) headers['X-Simulate-Error'] = 'true';
+
+      log(`Placing order for ${productInfo[selectedProduct].name}...`);
+
+      try {
+        const res = await fetch(`${API}/orders${qs}`, {
+          method: 'POST', headers,
+          body: JSON.stringify({ productId: selectedProduct, quantity: 1, customerEmail: 'demo@example.com' }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          log(`Order placed: ${data.orderId}  status=${data.status}  traceId=${data.traceId || '-'}`, 'ok');
+        } else {
+          log(`Order failed: ${data.error} — ${data.message || data.productId}`, 'error');
+        }
+        refreshStock();
+      } catch (e) {
+        log(`Request failed: ${e.message}`, 'error');
+      }
+    }
+
+    async function refreshStock() {
+      try {
+        const ids = Object.keys(productInfo);
+        const results = await Promise.all(ids.map(id => fetch(`${API}/inventory/${id}`).then(r => r.json())));
+        const stockEl = document.getElementById('stock');
+        stockEl.innerHTML = results.map(p =>
+          `<div class="stock-item"><span>${p.name}</span><span class="stock-value ${p.stock === 0 ? 'zero' : ''}">${p.stock}</span></div>`
+        ).join('');
+
+        document.querySelectorAll('.product-btn').forEach(btn => {
+          const r = results.find(p => p.productId === btn.dataset.id);
+          btn.classList.toggle('out-of-stock', r && r.stock === 0);
+        });
+      } catch (e) {
+        document.getElementById('stock').textContent = 'Failed to load';
+      }
+    }
+
+    async function resetInventory() {
+      try {
+        await fetch(`${API}/inventory/reset`, { method: 'POST' });
+        log('Inventory reset to initial values', 'ok');
+        refreshStock();
+      } catch (e) {
+        log(`Reset failed: ${e.message}`, 'error');
+      }
+    }
+
+    initProducts();
+    refreshStock();
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+meta {
+  name: Soak Test
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{loadGeneratorUrl}}/api/load/scenarios/soak
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "requestsPerSecond": 5,
+    "durationMinutes": 5
+  }
+}

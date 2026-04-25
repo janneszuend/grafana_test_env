@@ -1,0 +1,19 @@
+meta {
+  name: Out of Stock Order
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{orderServiceUrl}}/api/orders
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "productId": "prod-002",
+    "quantity": 1,
+    "customerEmail": "test@example.com"
+  }
+}
