@@ -9,7 +9,7 @@ services:
     volumes:
       - ./alloy/config.alloy:/etc/alloy/config.alloy
       - /var/run/docker.sock:/var/run/docker.sock
-    command: run /etc/alloy/config.alloy --server.http.listen-addr=0.0.0.0:12345
+    command: run /etc/alloy/config.alloy --server.http.listen-addr=0.0.0.0:12345 --stability.level=public-preview
     env_file: .env
     restart: unless-stopped
 
