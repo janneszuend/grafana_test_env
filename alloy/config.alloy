@@ -14,11 +14,7 @@ remotecfg {
  }
 
  otelcol.receiver.otlp "default" {
- 	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.receiver.otlp/
-
- 	// configures the default grpc endpoint "0.0.0.0:4317"
  	grpc { }
- 	// configures the default http/protobuf endpoint "0.0.0.0:4318"
  	http { }
 
  	output {
@@ -29,13 +25,10 @@ remotecfg {
  }
  
  otelcol.processor.resourcedetection "default" {
- 	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.resourcedetection/
  	detectors = ["env", "system"]
-
  	system {
  		hostname_sources = ["os"]
  	}
-
  	output {
  		metrics = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
  		logs    = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
@@ -44,9 +37,7 @@ remotecfg {
  }
 
  otelcol.processor.transform "drop_unneeded_resource_attributes" {
- 	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.transform/
  	error_mode = "ignore"
-
  	trace_statements {
  		context    = "resource"
  		statements = [
@@ -109,7 +100,6 @@ remotecfg {
  }
 
  otelcol.connector.host_info "default" {
- 	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.connector.host_info/
  	host_identifiers = ["host.name"]
 
  	output {
@@ -118,7 +108,6 @@ remotecfg {
  }
 
  otelcol.processor.transform "add_resource_attributes_as_metric_attributes" {
- 	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.transform/
  	error_mode = "ignore"
 
  	metric_statements {
@@ -135,7 +124,6 @@ remotecfg {
  }
 
  otelcol.processor.batch "default" {
- 	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.batch/
  	output {
  		metrics = [otelcol.exporter.otlphttp.grafana_cloud.input]
  		logs    = [otelcol.exporter.otlphttp.grafana_cloud.input]
@@ -144,7 +132,6 @@ remotecfg {
  }
 
  otelcol.exporter.otlphttp "grafana_cloud" {
- 	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.exporter.otlphttp/
  	client {
  		endpoint = "https://otlp-gateway-prod-eu-central-0.grafana.net/otlp"
  		auth     = otelcol.auth.basic.grafana_cloud.handler
@@ -152,7 +139,6 @@ remotecfg {
  }
 
  otelcol.auth.basic "grafana_cloud" {
- 	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.auth.basic/
  	username = "1625449"
  	password = "glc_eyJvIjoiMTc1NzMwNCIsIm4iOiJzdGFjay0xNjI1NDQ5LW90bHAtd3JpdGUtb3RscC1qYW5uZXMtbWFjYm9vayIsImsiOiJBUFhBNTNBck8xVDNZUmM0MUZFOTYxRjciLCJtIjp7InIiOiJwcm9kLWV1LWNlbnRyYWwtMCJ9fQ=="
  }
