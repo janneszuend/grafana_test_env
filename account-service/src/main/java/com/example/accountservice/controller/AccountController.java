@@ -32,8 +32,7 @@ public class AccountController {
                 "type", tx.getType(),
                 "status", tx.getStatus(),
                 "amount", tx.getAmount(),
-                "currency", tx.getCurrency(),
-                "traceId", tx.getTraceId() != null ? tx.getTraceId() : ""
+                "currency", tx.getCurrency()
         ));
     }
 

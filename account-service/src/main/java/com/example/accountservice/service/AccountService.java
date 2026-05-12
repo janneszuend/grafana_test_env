@@ -7,7 +7,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -62,8 +62,6 @@ public class AccountService {
         String transactionId = UUID.randomUUID().toString();
         String type = request.getType() != null ? request.getType().toUpperCase() : "TRANSFER";
         Transaction tx = new Transaction(transactionId, type, request.getFromAccountId(), request.getToAccountId(), request.getAmount());
-        tx.setTraceId(MDC.get("trace_id"));
-
         log.info("Processing transaction: transactionId={}, type={}, amount={} CHF",
                 transactionId, type, request.getAmount());
 

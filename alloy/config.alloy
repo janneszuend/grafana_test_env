@@ -41,8 +41,8 @@
  	trace_statements {
  		context    = "resource"
  		statements = [
- 			"set(attributes[\"application\"], \"TestApplikationJannes\")",
- 			"set(attributes[\"namespace\"], \"macbookpro-jannes\")",
+ 			"set(attributes[\"service.namespace\"], \"banking-poc\")",
+			"set(attributes[\"job\"], attributes[\"service.name\"])",
  			"delete_key(attributes, \"k8s.pod.start_time\")",
  			"delete_key(attributes, \"os.description\")",
  			"delete_key(attributes, \"os.type\")",
@@ -58,8 +58,8 @@
  	metric_statements {
  		context    = "resource"
  		statements = [
- 			"set(attributes[\"application\"], \"TestApplikationJannes\")",
- 			"set(attributes[\"namespace\"], \"macbookpro-jannes\")",
+ 			"set(attributes[\"service.namespace\"], \"banking-poc\")",
+ 			"set(attributes[\"job\"], attributes[\"service.name\"])",
  			"delete_key(attributes, \"k8s.pod.start_time\")",
  			"delete_key(attributes, \"os.description\")",
  			"delete_key(attributes, \"os.type\")",
@@ -75,8 +75,8 @@
  	log_statements {
  		context    = "resource"
  		statements = [
- 			"set(attributes[\"application\"], \"TestApplikationJannes\")",
- 			"set(attributes[\"namespace\"], \"macbookpro-jannes\")",
+ 			"set(attributes[\"service.namespace\"], \"banking-poc\")",
+ 			"set(attributes[\"job\"], attributes[\"service.name\"])",
  			"delete_key(attributes, \"k8s.pod.start_time\")",
  			"delete_key(attributes, \"os.description\")",
  			"delete_key(attributes, \"os.type\")",

@@ -11,7 +11,6 @@ public class Transaction {
     private final String currency;
     private String status;
     private final Instant createdAt;
-    private String traceId;
 
     public Transaction(String transactionId, String type, String fromAccountId, String toAccountId, double amount) {
         this.transactionId = transactionId;
@@ -33,6 +32,4 @@ public class Transaction {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public Instant getCreatedAt() { return createdAt; }
-    public String getTraceId() { return traceId; }
-    public void setTraceId(String traceId) { this.traceId = traceId; }
 }
