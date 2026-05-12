@@ -19,24 +19,25 @@ public class NotificationController {
             @RequestBody Map<String, Object> request,
             @RequestHeader(value = "X-Simulate-Error", defaultValue = "false") boolean simulateError) {
 
-        String type = (String) request.getOrDefault("type", "ORDER_CONFIRMATION");
-        String recipient = (String) request.getOrDefault("recipient", "customer@example.com");
-        String orderId = (String) request.getOrDefault("orderId", "unknown");
+        String type = (String) request.getOrDefault("type", "TRANSACTION_CONFIRMATION");
+        String recipient = (String) request.getOrDefault("recipient", "customer@bank.example");
+        String transactionId = (String) request.getOrDefault("transactionId",
+                request.getOrDefault("orderId", "unknown").toString());
 
         if (simulateError) {
-            log.error("Simulated notification failure for orderId={}, type={}", orderId, type);
-            throw new NotificationException("Simulated notification service failure for orderId=" + orderId);
+            log.error("Simulated notification failure for transactionId={}, type={}", transactionId, type);
+            throw new NotificationException("Simulated notification service failure for transactionId=" + transactionId);
         }
 
         String notificationId = UUID.randomUUID().toString();
-        log.info("Notification queued: id={}, type={}, recipient={}, orderId={}", notificationId, type, recipient, orderId);
+        log.info("Notification queued: id={}, type={}, recipient={}, transactionId={}", notificationId, type, recipient, transactionId);
 
         return ResponseEntity.accepted().body(Map.of(
                 "notificationId", notificationId,
                 "status", "QUEUED",
                 "type", type,
                 "recipient", recipient,
-                "orderId", orderId
+                "transactionId", transactionId
         ));
     }
 

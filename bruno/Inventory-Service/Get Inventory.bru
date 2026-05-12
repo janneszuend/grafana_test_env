@@ -1,15 +1,15 @@
 meta {
-  name: Get Inventory
+  name: Get Balance
   type: http
   seq: 1
 }
 
 get {
-  url: {{inventoryServiceUrl}}/api/inventory/:productId
+  url: {{balanceServiceUrl}}/api/balance/:accountId
   body: none
   auth: none
 }
 
 params:path {
-  productId: prod-001
+  accountId: acc-001
 }

@@ -1,19 +1,20 @@
 meta {
-  name: Out of Stock Order
+  name: Transfer Money
   type: http
   seq: 2
 }
 
 post {
-  url: {{orderServiceUrl}}/api/orders
+  url: {{accountServiceUrl}}/api/transactions
   body: json
   auth: none
 }
 
 body:json {
   {
-    "productId": "prod-002",
-    "quantity": 1,
-    "customerEmail": "test@example.com"
+    "type": "TRANSFER",
+    "fromAccountId": "acc-001",
+    "toAccountId": "acc-002",
+    "amount": 200.00
   }
 }

@@ -14,24 +14,24 @@ services:
     restart: unless-stopped
 
   order-service:
-    build: ./order-service
+    build: ./account-service
     ports: ["8080:8080"]
     environment:
-      OTEL_SERVICE_NAME: order-service
+      OTEL_SERVICE_NAME: account-service
       OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4317
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
       OTEL_LOGS_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
       OTEL_TRACES_EXPORTER: otlp
-      INVENTORY_SERVICE_URL: http://inventory-service:8081
+      BALANCE_SERVICE_URL: http://inventory-service:8081
       NOTIFICATION_SERVICE_URL: http://notification-service:8082
     depends_on: [alloy, inventory-service, notification-service]
 
   inventory-service:
-    build: ./inventory-service
+    build: ./balance-service
     ports: ["8081:8081"]
     environment:
-      OTEL_SERVICE_NAME: inventory-service
+      OTEL_SERVICE_NAME: balance-service
       OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4317
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
       OTEL_LOGS_EXPORTER: otlp

@@ -1,15 +1,15 @@
 meta {
-  name: Get Inventory Slow
+  name: Get Balance Slow
   type: http
   seq: 2
 }
 
 get {
-  url: {{inventoryServiceUrl}}/api/inventory/:productId?simulateDelay=true
+  url: {{balanceServiceUrl}}/api/balance/:accountId?simulateDelay=true
   body: none
   auth: none
 }
 
 params:path {
-  productId: prod-001
+  accountId: acc-001
 }

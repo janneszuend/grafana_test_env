@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class LoadRunnerService {
@@ -82,7 +83,7 @@ public class LoadRunnerService {
                     long start = System.currentTimeMillis();
                     boolean success = false;
                     try {
-                        executeScenarioRequest(scenario, request.getProductId());
+                        executeScenarioRequest(scenario, request.getAccountId());
                         success = true;
                         requestCounter.increment();
                     } catch (Exception e) {
@@ -110,40 +111,63 @@ public class LoadRunnerService {
         }
     }
 
-    private void executeScenarioRequest(String scenario, String productId) {
+    private void executeScenarioRequest(String scenario, String accountId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String url = orderServiceUrl + "/api/orders";
-        String pid = productId;
+        String url = orderServiceUrl + "/api/transactions";
         String queryParams = "";
+        String body;
 
         switch (scenario) {
-            case "OUT_OF_STOCK":
-                pid = "prod-002";
+            case "DEPOSIT":
+                double depositAmount = 50.0 + ThreadLocalRandom.current().nextInt(200);
+                body = String.format(
+                    "{\"type\":\"DEPOSIT\",\"toAccountId\":\"%s\",\"amount\":%.2f}",
+                    accountId, depositAmount);
+                break;
+            case "OVERDRAFT":
+                body = String.format(
+                    "{\"type\":\"TRANSFER\",\"fromAccountId\":\"%s\",\"toAccountId\":\"acc-002\",\"amount\":99999.00}",
+                    accountId);
                 break;
             case "MIXED":
-                String[] products = {"prod-001", "prod-002", "prod-003"};
-                pid = products[ThreadLocalRandom.current().nextInt(products.length)];
+                if (ThreadLocalRandom.current().nextBoolean()) {
+                    double amount = 20.0 + ThreadLocalRandom.current().nextInt(100);
+                    body = String.format(
+                        "{\"type\":\"DEPOSIT\",\"toAccountId\":\"%s\",\"amount\":%.2f}",
+                        accountId, amount);
+                } else {
+                    double amount = 10.0 + ThreadLocalRandom.current().nextInt(100);
+                    body = String.format(
+                        "{\"type\":\"TRANSFER\",\"fromAccountId\":\"%s\",\"toAccountId\":\"acc-002\",\"amount\":%.2f}",
+                        accountId, amount);
+                }
                 break;
-            case "SLOW_INVENTORY":
+            case "SLOW_BALANCE":
                 queryParams = "?simulateDelay=true";
+                double slowAmount = 10.0 + ThreadLocalRandom.current().nextInt(50);
+                body = String.format(
+                    "{\"type\":\"TRANSFER\",\"fromAccountId\":\"%s\",\"toAccountId\":\"acc-002\",\"amount\":%.2f}",
+                    accountId, slowAmount);
                 break;
             case "NOTIFICATION_FAIL":
                 headers.set("X-Simulate-Error", "true");
+                double notifAmount = 10.0 + ThreadLocalRandom.current().nextInt(50);
+                body = String.format(
+                    "{\"type\":\"TRANSFER\",\"fromAccountId\":\"%s\",\"toAccountId\":\"acc-002\",\"amount\":%.2f}",
+                    accountId, notifAmount);
                 break;
-            case "OVERLOAD":
-                // Just send requests as fast as possible (handled by higher RPS in config)
-                break;
-            case "RAMP_UP":
-                // Ramp handled externally via scenario endpoints
-                break;
+            case "TRANSFER":
             case "HAPPY_PATH":
             default:
+                double transferAmount = 10.0 + ThreadLocalRandom.current().nextInt(100);
+                body = String.format(
+                    "{\"type\":\"TRANSFER\",\"fromAccountId\":\"%s\",\"toAccountId\":\"acc-002\",\"amount\":%.2f}",
+                    accountId, transferAmount);
                 break;
         }
 
-        String body = String.format("{\"productId\":\"%s\",\"quantity\":1,\"customerEmail\":\"load@test.com\"}", pid);
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
         restTemplate.exchange(url + queryParams, HttpMethod.POST, entity, String.class);
     }
@@ -188,10 +212,9 @@ public class LoadRunnerService {
                 .toList();
     }
 
-    // Scenario shortcuts
     public LoadRun startSpike(ScenarioRequest req) {
         LoadRequest lr = new LoadRequest();
-        lr.setScenario("HAPPY_PATH");
+        lr.setScenario("TRANSFER");
         lr.setRequestsPerSecond(req.getPeakRps());
         lr.setDurationSeconds(req.getRampUpSeconds() + req.getSustainSeconds() + req.getRampDownSeconds());
         lr.setConcurrency(Math.max(3, req.getPeakRps() / 5));
@@ -200,7 +223,7 @@ public class LoadRunnerService {
 
     public LoadRun startSoak(ScenarioRequest req) {
         LoadRequest lr = new LoadRequest();
-        lr.setScenario("HAPPY_PATH");
+        lr.setScenario("MIXED");
         lr.setRequestsPerSecond(req.getRequestsPerSecond());
         lr.setDurationSeconds(req.getDurationMinutes() * 60);
         lr.setConcurrency(3);
@@ -209,7 +232,7 @@ public class LoadRunnerService {
 
     public LoadRun startStress(ScenarioRequest req) {
         LoadRequest lr = new LoadRequest();
-        lr.setScenario("RAMP_UP");
+        lr.setScenario("TRANSFER");
         lr.setRequestsPerSecond(req.getMaxRps());
         int steps = (req.getMaxRps() - req.getStartRps()) / Math.max(1, req.getStepRps());
         lr.setDurationSeconds(steps * req.getStepDurationSeconds());

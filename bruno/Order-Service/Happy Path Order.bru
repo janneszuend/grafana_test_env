@@ -1,19 +1,19 @@
 meta {
-  name: Happy Path Order
+  name: Deposit Money
   type: http
   seq: 1
 }
 
 post {
-  url: {{orderServiceUrl}}/api/orders
+  url: {{accountServiceUrl}}/api/transactions
   body: json
   auth: none
 }
 
 body:json {
   {
-    "productId": "prod-001",
-    "quantity": 1,
-    "customerEmail": "test@example.com"
+    "type": "DEPOSIT",
+    "toAccountId": "acc-001",
+    "amount": 500.00
   }
 }

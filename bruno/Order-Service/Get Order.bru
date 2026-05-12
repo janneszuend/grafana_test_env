@@ -1,15 +1,24 @@
 meta {
-  name: Get Order
+  name: Notification Failure Transfer
   type: http
   seq: 5
 }
 
-get {
-  url: {{orderServiceUrl}}/api/orders/:orderId
-  body: none
+post {
+  url: {{accountServiceUrl}}/api/transactions
+  body: json
   auth: none
 }
 
-params:path {
-  orderId: replace-with-order-id
+headers {
+  X-Simulate-Error: true
+}
+
+body:json {
+  {
+    "type": "TRANSFER",
+    "fromAccountId": "acc-001",
+    "toAccountId": "acc-002",
+    "amount": 50.00
+  }
 }

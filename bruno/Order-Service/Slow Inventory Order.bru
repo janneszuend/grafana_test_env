@@ -1,19 +1,20 @@
 meta {
-  name: Slow Inventory Order
+  name: Overdraft Transfer
   type: http
   seq: 3
 }
 
 post {
-  url: {{orderServiceUrl}}/api/orders?simulateDelay=true
+  url: {{accountServiceUrl}}/api/transactions
   body: json
   auth: none
 }
 
 body:json {
   {
-    "productId": "prod-001",
-    "quantity": 1,
-    "customerEmail": "test@example.com"
+    "type": "TRANSFER",
+    "fromAccountId": "acc-001",
+    "toAccountId": "acc-002",
+    "amount": 99999.00
   }
 }

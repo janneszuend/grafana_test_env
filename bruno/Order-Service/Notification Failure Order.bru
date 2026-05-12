@@ -1,23 +1,20 @@
 meta {
-  name: Notification Failure Order
+  name: Slow Balance Transfer
   type: http
   seq: 4
 }
 
 post {
-  url: {{orderServiceUrl}}/api/orders
+  url: {{accountServiceUrl}}/api/transactions?simulateDelay=true
   body: json
   auth: none
 }
 
-headers {
-  X-Simulate-Error: true
-}
-
 body:json {
   {
-    "productId": "prod-001",
-    "quantity": 1,
-    "customerEmail": "test@example.com"
+    "type": "TRANSFER",
+    "fromAccountId": "acc-001",
+    "toAccountId": "acc-002",
+    "amount": 100.00
   }
 }

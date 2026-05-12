@@ -3,31 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>E-Commerce PoC</title>
+  <title>Banking PoC</title>
   <script src="/tracing.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, sans-serif; background: #0f1117; color: #e0e0e0; padding: 2rem; }
-    h1 { font-size: 1.4rem; margin-bottom: 1.5rem; color: #fff; }
-    h2 { font-size: 1rem; margin-bottom: 0.75rem; color: #a0a0a0; text-transform: uppercase; letter-spacing: 0.05em; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.25rem; color: #fff; }
+    .subtitle { font-size: 0.85rem; color: #6b7280; margin-bottom: 1.5rem; }
+    h2 { font-size: 0.85rem; margin-bottom: 0.75rem; color: #a0a0a0; text-transform: uppercase; letter-spacing: 0.05em; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; max-width: 960px; }
     .card { background: #1a1d27; border: 1px solid #2a2d37; border-radius: 8px; padding: 1.25rem; }
-    .products { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .product-btn { padding: 0.4rem 0.8rem; border: 1px solid #3a3d47; border-radius: 4px; background: #22252f;
-                   color: #e0e0e0; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; }
-    .product-btn:hover { border-color: #6366f1; }
-    .product-btn.selected { background: #6366f1; border-color: #6366f1; color: #fff; }
-    .product-btn.out-of-stock { border-color: #ef4444; color: #ef4444; }
-    .product-btn.out-of-stock.selected { background: #ef4444; color: #fff; }
+    .card.full { grid-column: 1 / -1; }
+    .balance-box { background: #12141c; border: 1px solid #2a2d37; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
+    .balance-label { font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; }
+    .balance-amount { font-size: 2rem; font-weight: 700; color: #4ade80; font-family: 'SF Mono', monospace; }
+    .balance-currency { font-size: 1rem; color: #6b7280; margin-left: 0.25rem; }
+    .account-tag { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
+    .field { margin-bottom: 0.75rem; }
+    .field label { display: block; font-size: 0.8rem; color: #a0a0a0; margin-bottom: 0.3rem; }
+    .field input, .field select {
+      width: 100%; padding: 0.5rem 0.75rem; background: #12141c; border: 1px solid #3a3d47;
+      border-radius: 4px; color: #e0e0e0; font-size: 0.9rem;
+    }
+    .field input:focus, .field select:focus { outline: none; border-color: #6366f1; }
+    .recipient-box { background: #12141c; border: 1px solid #2a2d37; border-radius: 4px; padding: 0.5rem 0.75rem;
+                     font-size: 0.85rem; color: #a0a0a0; margin-bottom: 0.75rem; }
+    .recipient-name { color: #e0e0e0; font-weight: 500; }
     .actions { display: flex; flex-direction: column; gap: 0.5rem; }
+    .actions-row { display: flex; gap: 0.5rem; }
     .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem;
-           font-weight: 500; transition: all 0.15s; }
+           font-weight: 500; transition: all 0.15s; flex: 1; }
     .btn-primary { background: #6366f1; color: #fff; }
     .btn-primary:hover { background: #5558e6; }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-success:hover { background: #15803d; }
     .btn-warn { background: #f59e0b; color: #000; }
     .btn-warn:hover { background: #d97706; }
-    .btn-danger { background: #ef4444; color: #fff; }
-    .btn-danger:hover { background: #dc2626; }
     .btn-ghost { background: transparent; border: 1px solid #3a3d47; color: #a0a0a0; }
     .btn-ghost:hover { border-color: #6366f1; color: #e0e0e0; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -36,137 +47,165 @@
     .option input { accent-color: #6366f1; }
     #output { background: #12141c; border: 1px solid #2a2d37; border-radius: 8px; padding: 1rem;
               font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; white-space: pre-wrap;
-              max-height: 400px; overflow-y: auto; line-height: 1.5; grid-column: 1 / -1; }
-    .stock-display { font-size: 0.8rem; color: #a0a0a0; margin-top: 0.75rem; }
-    .stock-item { display: flex; justify-content: space-between; padding: 0.25rem 0;
-                  border-bottom: 1px solid #2a2d37; }
-    .stock-value { font-family: 'SF Mono', monospace; }
-    .stock-value.zero { color: #ef4444; }
+              max-height: 320px; overflow-y: auto; line-height: 1.5; }
     .log-success { color: #4ade80; }
     .log-error { color: #ef4444; }
     .log-info { color: #60a5fa; }
+    .log-warn { color: #f59e0b; }
     .log-time { color: #6b7280; }
   </style>
 </head>
 <body>
-  <h1>E-Commerce Order Processing</h1>
+  <h1>My Bank</h1>
+  <p class="subtitle">Banking PoC — Grafana Observability Demo</p>
   <div class="grid">
+
+    <!-- Account Overview -->
     <div class="card">
-      <h2>Place Order</h2>
-      <div class="products" id="products"></div>
+      <h2>Your Account</h2>
+      <div class="balance-box">
+        <div class="balance-label">Available Balance</div>
+        <div>
+          <span class="balance-amount" id="balance">—</span>
+          <span class="balance-currency">CHF</span>
+        </div>
+        <div class="account-tag" id="accountTag">Loading...</div>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-ghost" onclick="refreshBalance()">Refresh</button>
+        <button class="btn btn-warn" onclick="resetAccounts()">Reset Accounts</button>
+      </div>
+    </div>
+
+    <!-- Deposit -->
+    <div class="card">
+      <h2>Deposit Money</h2>
+      <div class="field">
+        <label>Amount (CHF)</label>
+        <input type="number" id="depositAmount" placeholder="e.g. 500" min="1" step="any">
+      </div>
+      <button class="btn btn-success" onclick="deposit()">Deposit to My Account</button>
+    </div>
+
+    <!-- Transfer -->
+    <div class="card">
+      <h2>Send Money</h2>
+      <div class="field">
+        <label>Recipient</label>
+        <div class="recipient-box">
+          <span class="recipient-name">Bob</span> — acc-002
+        </div>
+      </div>
+      <div class="field">
+        <label>Amount (CHF)</label>
+        <input type="number" id="transferAmount" placeholder="e.g. 200" min="1" step="any">
+      </div>
       <div class="options">
-        <label class="option"><input type="checkbox" id="slowInventory"> Slow Inventory</label>
+        <label class="option"><input type="checkbox" id="slowBalance"> Slow Balance Check</label>
         <label class="option"><input type="checkbox" id="notifError"> Notification Fail</label>
       </div>
-      <div class="actions">
-        <button class="btn btn-primary" onclick="placeOrder()">Place Order</button>
-      </div>
+      <button class="btn btn-primary" onclick="transfer()">Send Money</button>
     </div>
 
-    <div class="card">
-      <h2>Inventory</h2>
-      <div id="stock" class="stock-display">Loading...</div>
-      <div class="actions" style="margin-top: 0.75rem;">
-        <button class="btn btn-ghost" onclick="refreshStock()">Refresh</button>
-        <button class="btn btn-warn" onclick="resetInventory()">Reset Stock</button>
-      </div>
+    <!-- Log -->
+    <div class="card full">
+      <h2>Transaction Log</h2>
+      <div id="output"><span class="log-info">Ready. Deposit or send money to get started.</span></div>
     </div>
 
-    <div id="output"><span class="log-info">Ready. Select a product and place an order.</span></div>
   </div>
 
   <script>
     const API = '/api';
-    let selectedProduct = 'prod-001';
-    const productInfo = {
-      'prod-001': { name: 'MacBook Pro 14', stock: '?' },
-      'prod-002': { name: 'iPhone 16 Pro', stock: '?' },
-      'prod-003': { name: 'AirPods Pro', stock: '?' },
-    };
-
-    function initProducts() {
-      const container = document.getElementById('products');
-      Object.entries(productInfo).forEach(([id, info]) => {
-        const btn = document.createElement('button');
-        btn.className = 'product-btn' + (id === selectedProduct ? ' selected' : '');
-        btn.textContent = info.name;
-        btn.dataset.id = id;
-        btn.onclick = () => selectProduct(id);
-        container.appendChild(btn);
-      });
-    }
-
-    function selectProduct(id) {
-      selectedProduct = id;
-      document.querySelectorAll('.product-btn').forEach(b => {
-        b.classList.toggle('selected', b.dataset.id === id);
-      });
-    }
+    const MY_ACCOUNT = 'acc-001';
 
     function log(msg, type = 'info') {
       const el = document.getElementById('output');
       const time = new Date().toLocaleTimeString();
-      const cls = type === 'ok' ? 'log-success' : type === 'error' ? 'log-error' : 'log-info';
+      const cls = { ok: 'log-success', error: 'log-error', warn: 'log-warn', info: 'log-info' }[type] || 'log-info';
       el.innerHTML += `\n<span class="log-time">${time}</span>  <span class="${cls}">${msg}</span>`;
       el.scrollTop = el.scrollHeight;
     }
 
-    async function placeOrder() {
-      const slow = document.getElementById('slowInventory').checked;
-      const notifErr = document.getElementById('notifError').checked;
-      const qs = slow ? '?simulateDelay=true' : '';
-      const headers = { 'Content-Type': 'application/json' };
-      if (notifErr) headers['X-Simulate-Error'] = 'true';
-
-      log(`Placing order for ${productInfo[selectedProduct].name}...`);
-
+    async function refreshBalance() {
       try {
-        const res = await fetch(`${API}/orders${qs}`, {
-          method: 'POST', headers,
-          body: JSON.stringify({ productId: selectedProduct, quantity: 1, customerEmail: 'demo@example.com' }),
+        const res = await fetch(`${API}/balance/${MY_ACCOUNT}`);
+        if (!res.ok) { log('Failed to load balance', 'error'); return; }
+        const data = await res.json();
+        document.getElementById('balance').textContent = Number(data.balance).toFixed(2);
+        document.getElementById('accountTag').textContent = `${data.ownerName} · ${data.accountId}`;
+      } catch (e) {
+        document.getElementById('balance').textContent = '—';
+        log(`Balance fetch failed: ${e.message}`, 'error');
+      }
+    }
+
+    async function deposit() {
+      const amount = parseFloat(document.getElementById('depositAmount').value);
+      if (!amount || amount <= 0) { log('Please enter a valid deposit amount', 'warn'); return; }
+
+      log(`Depositing ${amount.toFixed(2)} CHF to my account...`);
+      try {
+        const res = await fetch(`${API}/transactions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'DEPOSIT', toAccountId: MY_ACCOUNT, amount }),
         });
         const data = await res.json();
         if (res.ok) {
-          log(`Order placed: ${data.orderId}  status=${data.status}  traceId=${data.traceId || '-'}`, 'ok');
+          log(`Deposit completed: +${amount.toFixed(2)} CHF  txId=${data.transactionId.substring(0,8)}…  traceId=${data.traceId || '-'}`, 'ok');
+          document.getElementById('depositAmount').value = '';
+          refreshBalance();
         } else {
-          log(`Order failed: ${data.error} — ${data.message || data.productId}`, 'error');
+          log(`Deposit failed: ${data.error} — ${data.message}`, 'error');
         }
-        refreshStock();
       } catch (e) {
         log(`Request failed: ${e.message}`, 'error');
       }
     }
 
-    async function refreshStock() {
-      try {
-        const ids = Object.keys(productInfo);
-        const results = await Promise.all(ids.map(id => fetch(`${API}/inventory/${id}`).then(r => r.json())));
-        const stockEl = document.getElementById('stock');
-        stockEl.innerHTML = results.map(p =>
-          `<div class="stock-item"><span>${p.name}</span><span class="stock-value ${p.stock === 0 ? 'zero' : ''}">${p.stock}</span></div>`
-        ).join('');
+    async function transfer() {
+      const amount = parseFloat(document.getElementById('transferAmount').value);
+      if (!amount || amount <= 0) { log('Please enter a valid transfer amount', 'warn'); return; }
 
-        document.querySelectorAll('.product-btn').forEach(btn => {
-          const r = results.find(p => p.productId === btn.dataset.id);
-          btn.classList.toggle('out-of-stock', r && r.stock === 0);
+      const slow = document.getElementById('slowBalance').checked;
+      const notifErr = document.getElementById('notifError').checked;
+      const qs = slow ? '?simulateDelay=true' : '';
+      const headers = { 'Content-Type': 'application/json' };
+      if (notifErr) headers['X-Simulate-Error'] = 'true';
+
+      log(`Sending ${amount.toFixed(2)} CHF to Bob (acc-002)...`);
+      try {
+        const res = await fetch(`${API}/transactions${qs}`, {
+          method: 'POST', headers,
+          body: JSON.stringify({ type: 'TRANSFER', fromAccountId: MY_ACCOUNT, toAccountId: 'acc-002', amount }),
         });
+        const data = await res.json();
+        if (res.ok) {
+          log(`Transfer completed: -${amount.toFixed(2)} CHF → Bob  txId=${data.transactionId.substring(0,8)}…  traceId=${data.traceId || '-'}`, 'ok');
+          document.getElementById('transferAmount').value = '';
+          refreshBalance();
+        } else if (data.error === 'INSUFFICIENT_FUNDS') {
+          log(`Transfer rejected: Insufficient funds (balance=${Number(data.balance).toFixed(2)} CHF, requested=${Number(data.requested).toFixed(2)} CHF)`, 'error');
+        } else {
+          log(`Transfer failed: ${data.error} — ${data.message}`, 'error');
+        }
       } catch (e) {
-        document.getElementById('stock').textContent = 'Failed to load';
+        log(`Request failed: ${e.message}`, 'error');
       }
     }
 
-    async function resetInventory() {
+    async function resetAccounts() {
       try {
-        await fetch(`${API}/inventory/reset`, { method: 'POST' });
-        log('Inventory reset to initial values', 'ok');
-        refreshStock();
+        await fetch(`${API}/accounts/reset`, { method: 'POST' });
+        log('Accounts reset to initial balances (Alice: 1000 CHF, Bob: 500 CHF)', 'ok');
+        refreshBalance();
       } catch (e) {
         log(`Reset failed: ${e.message}`, 'error');
       }
     }
 
-    initProducts();
-    refreshStock();
+    refreshBalance();
   </script>
 </body>
 </html>
