@@ -1,0 +1,22 @@
+meta {
+  name: Debit Account
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{balanceServiceUrl}}/api/balance/:accountId/debit
+  body: json
+  auth: none
+}
+
+params:path {
+  accountId: acc-001
+}
+
+body:json {
+  {
+    "amount": 100.00,
+    "transactionId": "test-tx-001"
+  }
+}

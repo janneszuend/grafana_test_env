@@ -1,0 +1,156 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="Architecture" id="arch">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ===== TITLE ===== -->
+        <mxCell id="title" value="Grafana Cloud Observability PoC — Architektur" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="377" y="30" width="900" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ===== CLIENTS GROUP ===== -->
+        <mxCell id="clients-bg" value="Clients" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="100" width="600" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Frontend -->
+        <mxCell id="frontend" value="&lt;b&gt;Frontend&lt;/b&gt;&lt;br&gt;:3000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="clients-bg">
+          <mxGeometry x="60" y="45" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Load Generator -->
+        <mxCell id="loadgen" value="&lt;b&gt;Load Generator&lt;/b&gt;&lt;br&gt;:8090" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="clients-bg">
+          <mxGeometry x="380" y="45" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ===== SERVICES GROUP ===== -->
+        <mxCell id="services-bg" value="Docker Services (lokale Laufzeitumgebung)" style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="290" width="1050" height="320" as="geometry" />
+        </mxCell>
+
+        <!-- Account Service -->
+        <mxCell id="account-svc" value="&lt;b&gt;account-service&lt;/b&gt;&lt;br&gt;(Docker: order-service)&lt;br&gt;:8080&lt;br&gt;&lt;i&gt;Spring Boot + OTel Agent&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="services-bg">
+          <mxGeometry x="180" y="110" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Balance Service -->
+        <mxCell id="balance-svc" value="&lt;b&gt;balance-service&lt;/b&gt;&lt;br&gt;(Docker: inventory-service)&lt;br&gt;:8081&lt;br&gt;&lt;i&gt;Spring Boot + OTel Agent&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="services-bg">
+          <mxGeometry x="480" y="60" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Notification Service -->
+        <mxCell id="notif-svc" value="&lt;b&gt;notification-service&lt;/b&gt;&lt;br&gt;:8082&lt;br&gt;&lt;i&gt;Spring Boot + OTel Agent&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="services-bg">
+          <mxGeometry x="480" y="200" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Alloy -->
+        <mxCell id="alloy" value="&lt;b&gt;Grafana Alloy&lt;/b&gt;&lt;br&gt;OTLP gRPC :4317&lt;br&gt;OTLP HTTP :4318&lt;br&gt;UI :12345" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="services-bg">
+          <mxGeometry x="790" y="110" width="200" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ===== GRAFANA CLOUD GROUP ===== -->
+        <mxCell id="cloud-bg" value="Grafana Cloud" style="swimlane;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="820" y="690" width="640" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- Tempo -->
+        <mxCell id="tempo" value="&lt;b&gt;Tempo&lt;/b&gt;&lt;br&gt;Distributed Traces" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="cloud-bg">
+          <mxGeometry x="30" y="55" width="160" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Mimir -->
+        <mxCell id="mimir" value="&lt;b&gt;Mimir&lt;/b&gt;&lt;br&gt;Metrics (Prometheus)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="cloud-bg">
+          <mxGeometry x="230" y="55" width="160" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Loki -->
+        <mxCell id="loki" value="&lt;b&gt;Loki&lt;/b&gt;&lt;br&gt;Logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="cloud-bg">
+          <mxGeometry x="430" y="55" width="160" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ===== GRAFANA DASHBOARDS ===== -->
+        <mxCell id="grafana-dash" value="&lt;b&gt;Grafana Dashboards&lt;/b&gt;&lt;br&gt;Explore / Alerts / Correlations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="820" y="920" width="640" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ===== EDGES ===== -->
+
+        <!-- Frontend → account-service -->
+        <mxCell id="e1" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;fontSize=10;" edge="1" source="frontend" target="account-svc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Load Generator → account-service -->
+        <mxCell id="e2" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;fontSize=10;" edge="1" source="loadgen" target="account-svc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- account-service → balance-service -->
+        <mxCell id="e3" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=10;" edge="1" source="account-svc" target="balance-svc" parent="services-bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- account-service → notification-service -->
+        <mxCell id="e4" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=10;" edge="1" source="account-svc" target="notif-svc" parent="services-bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- account-service → Alloy -->
+        <mxCell id="e5" value="OTLP/gRPC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;dashed=1;fontSize=10;strokeColor=#d6b656;" edge="1" source="account-svc" target="alloy" parent="services-bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- balance-service → Alloy -->
+        <mxCell id="e6" value="OTLP/gRPC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;dashed=1;fontSize=10;strokeColor=#d6b656;" edge="1" source="balance-svc" target="alloy" parent="services-bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- notification-service → Alloy -->
+        <mxCell id="e7" value="OTLP/gRPC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;dashed=1;fontSize=10;strokeColor=#d6b656;" edge="1" source="notif-svc" target="alloy" parent="services-bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Load Generator → Alloy (OTel) - goes from services group loadgen to alloy -->
+        <mxCell id="e8" value="OTLP/gRPC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;dashed=1;fontSize=10;strokeColor=#d6b656;" edge="1" source="loadgen" target="alloy" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Alloy → Grafana Cloud (OTLP HTTP) -->
+        <mxCell id="e9" value="OTLP/HTTP&lt;br&gt;(Traces + Metrics + Logs)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=10;strokeColor=#b85450;strokeWidth=2;" edge="1" source="alloy" target="cloud-bg" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Grafana Cloud → Dashboards -->
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;fontSize=10;strokeColor=#b85450;" edge="1" source="cloud-bg" target="grafana-dash" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== LEGEND ===== -->
+        <mxCell id="legend-bg" value="Legende" style="swimlane;startSize=25;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="100" y="700" width="280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#82b366;" edge="1" parent="legend-bg">
+          <mxGeometry x="20" y="50" width="60" height="10" as="geometry"><Array as="points"><mxPoint x="80" y="55"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="leg1-lbl" value="HTTP (Business Traffic)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="legend-bg">
+          <mxGeometry x="90" y="43" width="170" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#d6b656;" edge="1" parent="legend-bg">
+          <mxGeometry x="20" y="80" width="60" height="10" as="geometry"><Array as="points"><mxPoint x="80" y="85"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="leg2-lbl" value="OTLP (Traces / Metrics / Logs)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="legend-bg">
+          <mxGeometry x="90" y="73" width="170" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#b85450;strokeWidth=2;" edge="1" parent="legend-bg">
+          <mxGeometry x="20" y="110" width="60" height="10" as="geometry"><Array as="points"><mxPoint x="80" y="115"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="leg3-lbl" value="OTLP/HTTP → Grafana Cloud" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="legend-bg">
+          <mxGeometry x="90" y="103" width="170" height="24" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
