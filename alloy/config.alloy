@@ -1,17 +1,17 @@
-remotecfg {
- 	url = "https://fleet-management-prod-024.grafana.net"
- 	id  = constants.hostname
-
- 	basic_auth {
- 		username = "1625449"
- 		password = "glc_eyJvIjoiMTc1NzMwNCIsIm4iOiJzdGFjay0xNjI1NDQ5LWFsbG95LWphbm5lcy1tYWNib29rLWZsZWV0IiwiayI6Ijc4TFEyZzg1Y2xERjhLYkJoQzcxWTA1WiIsIm0iOnsiciI6InByb2QtZXUtY2VudHJhbC0wIn19"
- 	}
-
- 	attributes = {
- 		"application" = "TestApplikationJannes",
- 		"namespace"   = "macbookpro-jannes",
- 	}
- }
+//remotecfg {
+// 	url = "https://fleet-management-prod-024.grafana.net"
+// 	id  = constants.hostname
+//
+// 	basic_auth {
+// 		username = env("GRAFANA_APP_ID")
+// 		password = env("GRAFANA_REMOTE_CFG_KEY")
+// 	}
+//
+// 	attributes = {
+// 		"application" = "TestApplikationJannes",
+// 		"namespace"   = "macbookpro-jannes",
+// 	}
+// }
 
  otelcol.receiver.otlp "default" {
  	grpc { }
@@ -139,6 +139,6 @@ remotecfg {
  }
 
  otelcol.auth.basic "grafana_cloud" {
- 	username = "1625449"
- 	password = "glc_eyJvIjoiMTc1NzMwNCIsIm4iOiJzdGFjay0xNjI1NDQ5LW90bHAtd3JpdGUtb3RscC1qYW5uZXMtbWFjYm9vayIsImsiOiJBUFhBNTNBck8xVDNZUmM0MUZFOTYxRjciLCJtIjp7InIiOiJwcm9kLWV1LWNlbnRyYWwtMCJ9fQ=="
+ 	username = env("GRAFANA_APP_ID")
+ 	password = env("GRAFANA_OTEL_API_KEY")
  }
