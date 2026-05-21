@@ -42,7 +42,7 @@
  		context    = "resource"
  		statements = [
  			"set(attributes[\"service.namespace\"], \"banking-poc\")",
-			"set(attributes[\"job\"], attributes[\"service.name\"])",
+			"set(attributes[\"job\"], Concat([attributes[\"service.namespace\"], attributes[\"service.name\"]], \"/\"))",
  			"delete_key(attributes, \"k8s.pod.start_time\")",
  			"delete_key(attributes, \"os.description\")",
  			"delete_key(attributes, \"os.type\")",
@@ -59,7 +59,7 @@
  		context    = "resource"
  		statements = [
  			"set(attributes[\"service.namespace\"], \"banking-poc\")",
- 			"set(attributes[\"job\"], attributes[\"service.name\"])",
+ 			"set(attributes[\"job\"], Concat([attributes[\"service.namespace\"], attributes[\"service.name\"]], \"/\"))",
  			"delete_key(attributes, \"k8s.pod.start_time\")",
  			"delete_key(attributes, \"os.description\")",
  			"delete_key(attributes, \"os.type\")",
@@ -76,7 +76,7 @@
  		context    = "resource"
  		statements = [
  			"set(attributes[\"service.namespace\"], \"banking-poc\")",
- 			"set(attributes[\"job\"], attributes[\"service.name\"])",
+ 			"set(attributes[\"job\"], Concat([attributes[\"service.namespace\"], attributes[\"service.name\"]], \"/\"))",
  			"delete_key(attributes, \"k8s.pod.start_time\")",
  			"delete_key(attributes, \"os.description\")",
  			"delete_key(attributes, \"os.type\")",
