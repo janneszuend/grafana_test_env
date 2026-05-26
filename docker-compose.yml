@@ -13,7 +13,7 @@ services:
     env_file: .env
     restart: unless-stopped
 
-  order-service:
+  account-service:
     build: ./account-service
     ports: ["8080:8080"]
     environment:
@@ -23,11 +23,11 @@ services:
       OTEL_LOGS_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
       OTEL_TRACES_EXPORTER: otlp
-      BALANCE_SERVICE_URL: http://inventory-service:8081
+      BALANCE_SERVICE_URL: http://balance-service:8081
       NOTIFICATION_SERVICE_URL: http://notification-service:8082
-    depends_on: [alloy, inventory-service, notification-service]
+    depends_on: [alloy, balance-service, notification-service]
 
-  inventory-service:
+  balance-service:
     build: ./balance-service
     ports: ["8081:8081"]
     environment:
@@ -61,10 +61,10 @@ services:
       OTEL_LOGS_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
       OTEL_TRACES_EXPORTER: otlp
-      ORDER_SERVICE_URL: http://order-service:8080
-    depends_on: [alloy, order-service]
+      account_SERVICE_URL: http://account-service:8080
+    depends_on: [alloy, account-service]
 
   frontend:
     build: ./frontend
     ports: ["3000:3000"]
-    depends_on: [order-service, inventory-service]
+    depends_on: [account-service, balance-service]

@@ -142,3 +142,26 @@
  	username = env("GRAFANA_APP_ID")
  	password = env("GRAFANA_OTEL_API_KEY")
  }
+
+// Prometheus scraping — generates the "up" metric (1=reachable, 0=down)
+prometheus.scrape "services" {
+	targets = [
+		{"__address__" = "order-service:8080",        "job" = "banking-poc/account-service",      "service" = "account-service"},
+		{"__address__" = "inventory-service:8081",     "job" = "banking-poc/balance-service",      "service" = "balance-service"},
+		{"__address__" = "notification-service:8082",  "job" = "banking-poc/notification-service", "service" = "notification-service"},
+		{"__address__" = "load-generator:8090",        "job" = "banking-poc/load-generator",       "service" = "load-generator"},
+	]
+	metrics_path    = "/actuator/prometheus"
+	scrape_interval = "15s"
+	forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+}
+
+prometheus.remote_write "grafana_cloud" {
+	endpoint {
+		url = env("GRAFANA_PROMETHEUS_ENDPOINT")
+		basic_auth {
+			username = env("GRAFANA_PROMETHEUS_APP_ID")
+			password = env("GRAFANA_PROMETHEUS_API_KEY")
+		}
+	}
+}
