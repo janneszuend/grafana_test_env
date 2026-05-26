@@ -8,9 +8,9 @@ source "${SCRIPT_DIR}/../.env"
 
 
 
-TEAM_NAME="Application Team"   # ← hier deinen Team-Namen eintragen
-ROLE_NAME="custom:appteam:explore_drilldown_apm"
-ROLE_DISPLAY="App Team – Explore, Drilldown, App Observability"
+TEAM_NAME="Wizards"   
+ROLE_NAME="custom:wizards:explore_drilldown_apm"
+ROLE_DISPLAY="Wizards – Explore, Drilldown, App Observability"
 
 H_AUTH=(-H "Authorization: Bearer ${GRAFANA_TOKEN}")
 H_JSON=(-H "Content-Type: application/json")
@@ -38,7 +38,7 @@ if [[ -n "${EXISTING_UID}" ]]; then
   ROLE_UID="${EXISTING_UID}"
 else
   # ── 3. Custom Role anlegen ─────────────────────────────────
-  ROLE_UID=$(curl -s -X POST "${GRAFANA_URL}/api/access-control/roles" \
+  ROLE_RESPONSE=$(curl -s -X POST "${GRAFANA_URL}/api/access-control/roles" \
     "${H_AUTH[@]}" "${H_JSON[@]}" \
     -d "{
       \"name\": \"${ROLE_NAME}\",
@@ -64,7 +64,13 @@ else
 
         { \"action\": \"orgs:read\" }
       ]
-    }" | jq -r '.uid')
+    }")
+  ROLE_UID=$(echo "${ROLE_RESPONSE}" | jq -r '.uid // empty')
+  if [[ -z "${ROLE_UID}" ]]; then
+    echo "❌ Custom Role konnte nicht erstellt werden. API-Antwort:"
+    echo "${ROLE_RESPONSE}" | jq . 2>/dev/null || echo "${ROLE_RESPONSE}"
+    exit 1
+  fi
   echo "✅ Custom Role erstellt: ${ROLE_UID}"
 fi
 
