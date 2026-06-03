@@ -26,7 +26,7 @@ otelcol.processor.transform "drop_unneeded_resource_attributes" {
 	trace_statements {
 		context    = "resource"
 		statements = [
-			"set(attributes[\"deployment.environment\"], \"banking-poc\")",
+			"set(attributes[\"deployment.environment\"], \"dev\")",
 			"set(attributes[\"service.namespace\"], \"banking-poc\")",
 			"delete_key(attributes, \"k8s.pod.start_time\")",
 			"delete_key(attributes, \"os.description\")",
@@ -43,7 +43,7 @@ otelcol.processor.transform "drop_unneeded_resource_attributes" {
 	metric_statements {
 		context    = "resource"
 		statements = [
-			"set(attributes[\"deployment.environment\"], \"banking-poc\")",
+			"set(attributes[\"deployment.environment\"], \"dev\")",
 			"set(attributes[\"service.namespace\"], \"banking-poc\")",
 			"delete_key(attributes, \"k8s.pod.start_time\")",
 			"delete_key(attributes, \"os.description\")",
@@ -60,7 +60,7 @@ otelcol.processor.transform "drop_unneeded_resource_attributes" {
 	log_statements {
 		context    = "resource"
 		statements = [
-			"set(attributes[\"deployment.environment\"], \"banking-poc\")",
+			"set(attributes[\"deployment.environment\"], \"dev\")",
 			"set(attributes[\"service.namespace\"], \"banking-poc\")",
 			"delete_key(attributes, \"k8s.pod.start_time\")",
 			"delete_key(attributes, \"os.description\")",
@@ -110,7 +110,7 @@ otelcol.processor.transform "add_resource_attributes_as_metric_attributes" {
 	metric_statements {
 		context    = "datapoint"
 		statements = [
-			"set(attributes[\"deployment.environment\"], resource.attributes[\"deployment.environment\"])",
+			"set(attributes[\"deployment.environment\"], \"dev\")",
 			"set(attributes[\"service.version\"], resource.attributes[\"service.version\"])",
 		]
 	}
@@ -136,18 +136,18 @@ otelcol.exporter.otlphttp "grafana_cloud" {
 }
 
 otelcol.auth.basic "grafana_cloud" {
-	username = sys.env("GRAFANA_APP_ID")
-	password = sys.env("GRAFANA_OTEL_API_KEY")
+	username = env("GRAFANA_APP_ID")
+	password = env("GRAFANA_OTEL_API_KEY")
 }
 
 // Prometheus scrape → direkt zu remote_write (NICHT durch OTel-Pipeline)
 // Verhindert doppelte service.name-Einträge in der Service Map
 prometheus.scrape "services" {
 	targets = [
-		{"__address__" = "account-service:8080",      "job" = "account-service"},
-		{"__address__" = "balance-service:8081",       "job" = "balance-service"},
-		{"__address__" = "notification-service:8082",  "job" = "notification-service"},
-		{"__address__" = "load-generator:8090",        "job" = "load-generator"},
+		{"__address__" = "account-service:8080",      "job" = "banking-poc/account-service"},
+		{"__address__" = "balance-service:8081",       "job" = "banking-poc/balance-service"},
+		{"__address__" = "notification-service:8082",  "job" = "banking-poc/notification-service"},
+		{"__address__" = "load-generator:8090",        "job" = "banking-poc/load-generator"},
 	]
 	metrics_path    = "/actuator/prometheus"
 	scrape_interval = "15s"
@@ -168,10 +168,10 @@ prometheus.scrape "docker" {
 // URL: Grafana Cloud → Connections → Data sources → Prometheus → "Remote Write Endpoint"
 prometheus.remote_write "grafana_cloud" {
 	endpoint {
-		url = sys.env("GRAFANA_PROM_REMOTE_WRITE_URL")
+		url = env("GRAFANA_PROM_REMOTE_WRITE_URL")
 		basic_auth {
-			username = sys.env("GRAFANA_APP_ID")
-			password = sys.env("GRAFANA_PROM_API_KEY")
+			username = env("GRAFANA_PROMETHEUS_APP_ID")
+			password = env("GRAFANA_PROMETHEUS_API_KEY")
 		}
 	}
 }
