@@ -140,8 +140,6 @@ otelcol.auth.basic "grafana_cloud" {
 	password = sys.env("GRAFANA_OTEL_API_KEY")
 }
 
-// Prometheus scrape → direkt zu remote_write (NICHT durch OTel-Pipeline)
-// Verhindert doppelte service.name-Einträge in der Service Map
 prometheus.scrape "services" {
 	targets = [
 		{"__address__" = "account-service:8080",      "job" = "banking-poc/account-service"},
@@ -154,7 +152,6 @@ prometheus.scrape "services" {
 	forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
 }
 
-// Docker daemon metrics (Engine-Endpoint via host.docker.internal, da Alloy im Container läuft)
 prometheus.scrape "docker" {
 	targets = [
 		{"__address__" = "host.docker.internal:9323", "service" = "docker"},
@@ -164,8 +161,6 @@ prometheus.scrape "docker" {
 	forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
 }
 
-// Prometheus remote_write für up/down-Dashboard
-// URL: Grafana Cloud → Connections → Data sources → Prometheus → "Remote Write Endpoint"
 prometheus.remote_write "grafana_cloud" {
 	endpoint {
 		url = sys.env("GRAFANA_PROMETHEUS_ENDPOINT")

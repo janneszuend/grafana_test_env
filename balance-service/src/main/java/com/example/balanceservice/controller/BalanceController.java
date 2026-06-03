@@ -35,7 +35,7 @@ public class BalanceController {
         return checkDuration.record(() -> {
             if (simulateDelay) {
                 try {
-                    long delay = ThreadLocalRandom.current().nextLong(2000, 4001);
+                    long delay = ThreadLocalRandom.current().nextLong(1000, 1500);
                     log.warn("Simulating slow balance check for account={}, delay={}ms", accountId, delay);
                     Thread.sleep(delay);
                 } catch (InterruptedException e) {
