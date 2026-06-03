@@ -154,7 +154,7 @@ prometheus.scrape "services" {
 
 prometheus.scrape "docker" {
 	targets = [
-		{"__address__" = "host.docker.internal:9323", "service" = "docker"},
+		{"__address__" = "host.docker.internal:9323", "job" = "banking-poc/docker"},
 	]
 	metrics_path    = "/metrics"
 	scrape_interval = "15s"
