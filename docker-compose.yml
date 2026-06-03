@@ -23,6 +23,7 @@ services:
       OTEL_LOGS_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
       OTEL_TRACES_EXPORTER: otlp
+      OTEL_INSTRUMENTATION_COMMON_EXCLUDED_URLS: /actuator/*
       BALANCE_SERVICE_URL: http://balance-service:8081
       NOTIFICATION_SERVICE_URL: http://notification-service:8082
     depends_on: [alloy, balance-service, notification-service]
@@ -37,6 +38,7 @@ services:
       OTEL_LOGS_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
       OTEL_TRACES_EXPORTER: otlp
+      OTEL_INSTRUMENTATION_COMMON_EXCLUDED_URLS: /actuator/*
     depends_on: [alloy]
 
   notification-service:
@@ -49,6 +51,7 @@ services:
       OTEL_LOGS_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
       OTEL_TRACES_EXPORTER: otlp
+      OTEL_INSTRUMENTATION_COMMON_EXCLUDED_URLS: /actuator/*
     depends_on: [alloy]
 
   load-generator:
@@ -62,9 +65,11 @@ services:
       OTEL_METRICS_EXPORTER: otlp
       OTEL_TRACES_EXPORTER: otlp
       account_SERVICE_URL: http://account-service:8080
+      OTEL_INSTRUMENTATION_COMMON_EXCLUDED_URLS: /actuator/*
     depends_on: [alloy, account-service]
 
   frontend:
     build: ./frontend
     ports: ["3000:3000"]
     depends_on: [account-service, balance-service]
+

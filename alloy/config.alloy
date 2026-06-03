@@ -1,167 +1,177 @@
-//remotecfg {
-// 	url = "https://fleet-management-prod-024.grafana.net"
-// 	id  = constants.hostname
-//
-// 	basic_auth {
-// 		username = env("GRAFANA_APP_ID")
-// 		password = env("GRAFANA_REMOTE_CFG_KEY")
-// 	}
-//
-// 	attributes = {
-// 		"application" = "TestApplikationJannes",
-// 		"namespace"   = "macbookpro-jannes",
-// 	}
-// }
+otelcol.receiver.otlp "default" {
+	grpc { }
+	http { }
 
- otelcol.receiver.otlp "default" {
- 	grpc { }
- 	http { }
+	output {
+		metrics = [otelcol.processor.resourcedetection.default.input]
+		logs    = [otelcol.processor.resourcedetection.default.input]
+		traces  = [otelcol.processor.resourcedetection.default.input]
+	}
+}
 
- 	output {
- 		metrics = [otelcol.processor.resourcedetection.default.input]
- 		logs    = [otelcol.processor.resourcedetection.default.input]
- 		traces  = [otelcol.processor.resourcedetection.default.input]
- 	}
- }
- 
- otelcol.processor.resourcedetection "default" {
- 	detectors = ["env", "system"]
- 	system {
- 		hostname_sources = ["os"]
- 	}
- 	output {
- 		metrics = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
- 		logs    = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
- 		traces  = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
- 	}
- }
+otelcol.processor.resourcedetection "default" {
+	detectors = ["env", "system"]
+	system {
+		hostname_sources = ["os"]
+	}
+	output {
+		metrics = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+		logs    = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+		traces  = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+	}
+}
 
- otelcol.processor.transform "drop_unneeded_resource_attributes" {
- 	error_mode = "ignore"
- 	trace_statements {
- 		context    = "resource"
- 		statements = [
- 			"set(attributes[\"service.namespace\"], \"banking-poc\")",
-			"set(attributes[\"job\"], Concat([attributes[\"service.namespace\"], attributes[\"service.name\"]], \"/\"))",
- 			"delete_key(attributes, \"k8s.pod.start_time\")",
- 			"delete_key(attributes, \"os.description\")",
- 			"delete_key(attributes, \"os.type\")",
- 			"delete_key(attributes, \"process.command_args\")",
- 			"delete_key(attributes, \"process.executable.path\")",
- 			"delete_key(attributes, \"process.pid\")",
- 			"delete_key(attributes, \"process.runtime.description\")",
- 			"delete_key(attributes, \"process.runtime.name\")",
- 			"delete_key(attributes, \"process.runtime.version\")",
- 		]
- 	}
+otelcol.processor.transform "drop_unneeded_resource_attributes" {
+	error_mode = "ignore"
+	trace_statements {
+		context    = "resource"
+		statements = [
+			"set(attributes[\"deployment.environment\"], \"banking-poc\")",
+			"set(attributes[\"service.namespace\"], \"banking-poc\")",
+			"delete_key(attributes, \"k8s.pod.start_time\")",
+			"delete_key(attributes, \"os.description\")",
+			"delete_key(attributes, \"os.type\")",
+			"delete_key(attributes, \"process.command_args\")",
+			"delete_key(attributes, \"process.executable.path\")",
+			"delete_key(attributes, \"process.pid\")",
+			"delete_key(attributes, \"process.runtime.description\")",
+			"delete_key(attributes, \"process.runtime.name\")",
+			"delete_key(attributes, \"process.runtime.version\")",
+		]
+	}
 
- 	metric_statements {
- 		context    = "resource"
- 		statements = [
- 			"set(attributes[\"service.namespace\"], \"banking-poc\")",
- 			"set(attributes[\"job\"], Concat([attributes[\"service.namespace\"], attributes[\"service.name\"]], \"/\"))",
- 			"delete_key(attributes, \"k8s.pod.start_time\")",
- 			"delete_key(attributes, \"os.description\")",
- 			"delete_key(attributes, \"os.type\")",
- 			"delete_key(attributes, \"process.command_args\")",
- 			"delete_key(attributes, \"process.executable.path\")",
- 			"delete_key(attributes, \"process.pid\")",
- 			"delete_key(attributes, \"process.runtime.description\")",
- 			"delete_key(attributes, \"process.runtime.name\")",
- 			"delete_key(attributes, \"process.runtime.version\")",
- 		]
- 	}
+	metric_statements {
+		context    = "resource"
+		statements = [
+			"set(attributes[\"deployment.environment\"], \"banking-poc\")",
+			"set(attributes[\"service.namespace\"], \"banking-poc\")",
+			"delete_key(attributes, \"k8s.pod.start_time\")",
+			"delete_key(attributes, \"os.description\")",
+			"delete_key(attributes, \"os.type\")",
+			"delete_key(attributes, \"process.command_args\")",
+			"delete_key(attributes, \"process.executable.path\")",
+			"delete_key(attributes, \"process.pid\")",
+			"delete_key(attributes, \"process.runtime.description\")",
+			"delete_key(attributes, \"process.runtime.name\")",
+			"delete_key(attributes, \"process.runtime.version\")",
+		]
+	}
 
- 	log_statements {
- 		context    = "resource"
- 		statements = [
- 			"set(attributes[\"service.namespace\"], \"banking-poc\")",
- 			"set(attributes[\"job\"], Concat([attributes[\"service.namespace\"], attributes[\"service.name\"]], \"/\"))",
- 			"delete_key(attributes, \"k8s.pod.start_time\")",
- 			"delete_key(attributes, \"os.description\")",
- 			"delete_key(attributes, \"os.type\")",
- 			"delete_key(attributes, \"process.command_args\")",
- 			"delete_key(attributes, \"process.executable.path\")",
- 			"delete_key(attributes, \"process.pid\")",
- 			"delete_key(attributes, \"process.runtime.description\")",
- 			"delete_key(attributes, \"process.runtime.name\")",
- 			"delete_key(attributes, \"process.runtime.version\")",
- 		]
- 	}
+	log_statements {
+		context    = "resource"
+		statements = [
+			"set(attributes[\"deployment.environment\"], \"banking-poc\")",
+			"set(attributes[\"service.namespace\"], \"banking-poc\")",
+			"delete_key(attributes, \"k8s.pod.start_time\")",
+			"delete_key(attributes, \"os.description\")",
+			"delete_key(attributes, \"os.type\")",
+			"delete_key(attributes, \"process.command_args\")",
+			"delete_key(attributes, \"process.executable.path\")",
+			"delete_key(attributes, \"process.pid\")",
+			"delete_key(attributes, \"process.runtime.description\")",
+			"delete_key(attributes, \"process.runtime.name\")",
+			"delete_key(attributes, \"process.runtime.version\")",
+		]
+	}
 
- 	output {
- 		metrics = [otelcol.processor.transform.add_resource_attributes_as_metric_attributes.input]
- 		logs    = [otelcol.processor.batch.default.input]
- 		traces  = [
- 			otelcol.processor.batch.default.input,
- 			otelcol.connector.host_info.default.input,
- 		]
- 	}
- }
+	output {
+		metrics = [otelcol.processor.transform.add_resource_attributes_as_metric_attributes.input]
+		logs    = [otelcol.processor.batch.default.input]
+		traces  = [otelcol.processor.filter.drop_actuator.input]
+	}
+}
 
- otelcol.connector.host_info "default" {
- 	host_identifiers = ["host.name"]
+otelcol.processor.filter "drop_actuator" {
+	error_mode = "ignore"
+	traces {
+		span = [
+			`attributes["url.path"] == "/actuator/prometheus"`,
+		]
+	}
+	output {
+		traces = [
+			otelcol.processor.batch.default.input,
+			otelcol.connector.host_info.default.input,
+		]
+	}
+}
 
- 	output {
- 		metrics = [otelcol.processor.batch.default.input]
- 	}
- }
+otelcol.connector.host_info "default" {
+	host_identifiers = ["host.name"]
 
- otelcol.processor.transform "add_resource_attributes_as_metric_attributes" {
- 	error_mode = "ignore"
+	output {
+		metrics = [otelcol.processor.batch.default.input]
+	}
+}
 
- 	metric_statements {
- 		context    = "datapoint"
- 		statements = [
- 			"set(attributes[\"deployment.environment\"], resource.attributes[\"deployment.environment\"])",
- 			"set(attributes[\"service.version\"], resource.attributes[\"service.version\"])",
- 		]
- 	}
+otelcol.processor.transform "add_resource_attributes_as_metric_attributes" {
+	error_mode = "ignore"
 
- 	output {
- 		metrics = [otelcol.processor.batch.default.input]
- 	}
- }
+	metric_statements {
+		context    = "datapoint"
+		statements = [
+			"set(attributes[\"deployment.environment\"], resource.attributes[\"deployment.environment\"])",
+			"set(attributes[\"service.version\"], resource.attributes[\"service.version\"])",
+		]
+	}
 
- otelcol.processor.batch "default" {
- 	output {
- 		metrics = [otelcol.exporter.otlphttp.grafana_cloud.input]
- 		logs    = [otelcol.exporter.otlphttp.grafana_cloud.input]
- 		traces  = [otelcol.exporter.otlphttp.grafana_cloud.input]
- 	}
- }
+	output {
+		metrics = [otelcol.processor.batch.default.input]
+	}
+}
 
- otelcol.exporter.otlphttp "grafana_cloud" {
- 	client {
- 		endpoint = "https://otlp-gateway-prod-eu-central-0.grafana.net/otlp"
- 		auth     = otelcol.auth.basic.grafana_cloud.handler
- 	}
- }
+otelcol.processor.batch "default" {
+	output {
+		metrics = [otelcol.exporter.otlphttp.grafana_cloud.input]
+		logs    = [otelcol.exporter.otlphttp.grafana_cloud.input]
+		traces  = [otelcol.exporter.otlphttp.grafana_cloud.input]
+	}
+}
 
- otelcol.auth.basic "grafana_cloud" {
- 	username = env("GRAFANA_APP_ID")
- 	password = env("GRAFANA_OTEL_API_KEY")
- }
+otelcol.exporter.otlphttp "grafana_cloud" {
+	client {
+		endpoint = "https://otlp-gateway-prod-eu-central-0.grafana.net/otlp"
+		auth     = otelcol.auth.basic.grafana_cloud.handler
+	}
+}
 
-// Prometheus scraping — generates the "up" metric (1=reachable, 0=down)
+otelcol.auth.basic "grafana_cloud" {
+	username = sys.env("GRAFANA_APP_ID")
+	password = sys.env("GRAFANA_OTEL_API_KEY")
+}
+
+// Prometheus scrape → direkt zu remote_write (NICHT durch OTel-Pipeline)
+// Verhindert doppelte service.name-Einträge in der Service Map
 prometheus.scrape "services" {
 	targets = [
-		{"__address__" = "account-service:8080",        "job" = "banking-poc/account-service",      "service" = "account-service"},
-		{"__address__" = "balance-service:8081",     "job" = "banking-poc/balance-service",      "service" = "balance-service"},
-		{"__address__" = "notification-service:8082",  "job" = "banking-poc/notification-service", "service" = "notification-service"},
-		{"__address__" = "load-generator:8090",        "job" = "banking-poc/load-generator",       "service" = "load-generator"},
+		{"__address__" = "account-service:8080",      "job" = "account-service"},
+		{"__address__" = "balance-service:8081",       "job" = "balance-service"},
+		{"__address__" = "notification-service:8082",  "job" = "notification-service"},
+		{"__address__" = "load-generator:8090",        "job" = "load-generator"},
 	]
 	metrics_path    = "/actuator/prometheus"
 	scrape_interval = "15s"
 	forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
 }
 
+// Docker daemon metrics (Engine-Endpoint via host.docker.internal, da Alloy im Container läuft)
+prometheus.scrape "docker" {
+	targets = [
+		{"__address__" = "host.docker.internal:9323", "service" = "docker"},
+	]
+	metrics_path    = "/metrics"
+	scrape_interval = "15s"
+	forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+}
+
+// Prometheus remote_write für up/down-Dashboard
+// URL: Grafana Cloud → Connections → Data sources → Prometheus → "Remote Write Endpoint"
 prometheus.remote_write "grafana_cloud" {
 	endpoint {
-		url = env("GRAFANA_PROMETHEUS_ENDPOINT")
+		url = sys.env("GRAFANA_PROM_REMOTE_WRITE_URL")
 		basic_auth {
-			username = env("GRAFANA_PROMETHEUS_APP_ID")
-			password = env("GRAFANA_PROMETHEUS_API_KEY")
+			username = sys.env("GRAFANA_APP_ID")
+			password = sys.env("GRAFANA_PROM_API_KEY")
 		}
 	}
 }
