@@ -28,6 +28,8 @@ otelcol.processor.transform "drop_unneeded_resource_attributes" {
 		statements = [
 			"set(resource.attributes[\"deployment.environment\"], \"dev\")",
 			"set(resource.attributes[\"service.namespace\"], \"banking-poc\")",
+			"set(resource.attributes[\"asserts.env\"], \"dev\")",
+			"set(resource.attributes[\"asserts.site\"], \"\")",
 			"delete_key(resource.attributes, \"k8s.pod.start_time\")",
 			"delete_key(resource.attributes, \"os.description\")",
 			"delete_key(resource.attributes, \"os.type\")",
@@ -45,6 +47,8 @@ otelcol.processor.transform "drop_unneeded_resource_attributes" {
 		statements = [
 			"set(resource.attributes[\"deployment.environment\"], \"dev\")",
 			"set(resource.attributes[\"service.namespace\"], \"banking-poc\")",
+			"set(resource.attributes[\"asserts.env\"], \"dev\")",
+			"set(resource.attributes[\"asserts.site\"], \"\")",
 			"delete_key(resource.attributes, \"k8s.pod.start_time\")",
 			"delete_key(resource.attributes, \"os.description\")",
 			"delete_key(resource.attributes, \"os.type\")",
@@ -62,6 +66,8 @@ otelcol.processor.transform "drop_unneeded_resource_attributes" {
 		statements = [
 			"set(resource.attributes[\"deployment.environment\"], \"dev\")",
 			"set(resource.attributes[\"service.namespace\"], \"banking-poc\")",
+			"set(resource.attributes[\"asserts.env\"], \"dev\")",
+			"set(resource.attributes[\"asserts.site\"], \"\")",
 			"delete_key(resource.attributes, \"k8s.pod.start_time\")",
 			"delete_key(resource.attributes, \"os.description\")",
 			"delete_key(resource.attributes, \"os.type\")",
@@ -77,19 +83,7 @@ otelcol.processor.transform "drop_unneeded_resource_attributes" {
 	output {
 		metrics = [otelcol.processor.transform.add_resource_attributes_as_metric_attributes.input]
 		logs    = [otelcol.processor.batch.default.input]
-		traces  = [otelcol.processor.filter.drop_actuator.input]
-	}
-}
-
-otelcol.processor.filter "drop_actuator" {
-	error_mode = "ignore"
-	traces {
-		span = [
-			`attributes["url.path"] == "/actuator/prometheus"`,
-		]
-	}
-	output {
-		traces = [
+		traces  = [
 			otelcol.processor.batch.default.input,
 			otelcol.connector.host_info.default.input,
 		]
@@ -149,7 +143,7 @@ prometheus.scrape "services" {
 	]
 	metrics_path    = "/actuator/prometheus"
 	scrape_interval = "15s"
-	forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+	forward_to      = [prometheus.relabel.asserts_enrich.receiver]
 }
 
 prometheus.scrape "docker" {
@@ -158,7 +152,43 @@ prometheus.scrape "docker" {
 	]
 	metrics_path    = "/metrics"
 	scrape_interval = "15s"
-	forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+	forward_to      = [prometheus.relabel.asserts_enrich.receiver]
+}
+
+prometheus.relabel "asserts_enrich" {
+	forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+
+	// service aus job ableiten: banking-poc/account-service -> account-service
+	rule {
+		source_labels = ["job"]
+		regex         = "banking-poc/(.+)"
+		target_label  = "service"
+		replacement   = "$1"
+	}
+
+	// namespace fest setzen
+	rule {
+		target_label = "namespace"
+		replacement  = "banking-poc"
+	}
+
+	// asserts_env / asserts_site (an OTel deployment.environment angeglichen)
+	rule {
+		target_label = "asserts_env"
+		replacement  = "dev"
+	}
+	rule {
+		target_label = "asserts_site"
+		replacement  = ""
+	}
+
+	// asserts_metric_latency fuer Histogramme (*_seconds_bucket)
+	rule {
+		source_labels = ["__name__"]
+		regex         = ".+_seconds_bucket"
+		target_label  = "asserts_metric_latency"
+		replacement   = "histogram_seconds"
+	}
 }
 
 prometheus.remote_write "grafana_cloud" {
