@@ -1,0 +1,21 @@
+meta {
+  name: Start Periodic
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{loadGeneratorUrl}}/api/load/periodic/start
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "intervalSeconds": 30,
+    "type": "TRANSFER",
+    "accountId": "acc-001",
+    "toAccountId": "acc-002",
+    "amount": 1.00
+  }
+}
