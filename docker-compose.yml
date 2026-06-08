@@ -68,7 +68,7 @@ services:
       OTEL_LOGS_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
       OTEL_TRACES_EXPORTER: otlp
-      account_SERVICE_URL: http://account-service:8080
+      ORDER_SERVICE_URL: http://account-service:8080
       OTEL_INSTRUMENTATION_COMMON_EXCLUDED_URLS: /actuator/*
     depends_on: [alloy, account-service]
 

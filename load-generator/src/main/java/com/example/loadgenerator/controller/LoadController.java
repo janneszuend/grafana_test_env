@@ -2,6 +2,7 @@ package com.example.loadgenerator.controller;
 
 import com.example.loadgenerator.model.LoadRequest;
 import com.example.loadgenerator.model.LoadRun;
+import com.example.loadgenerator.model.PeriodicRequest;
 import com.example.loadgenerator.model.ScenarioRequest;
 import com.example.loadgenerator.service.LoadRunnerService;
 import org.springframework.http.ResponseEntity;
@@ -89,6 +90,22 @@ public class LoadController {
     public ResponseEntity<?> chaos(@RequestBody ScenarioRequest request) {
         LoadRun run = loadRunnerService.startChaos(request);
         return ResponseEntity.accepted().body(toRunMap(run));
+    }
+
+    @PostMapping("/periodic/start")
+    public ResponseEntity<?> startPeriodic(@RequestBody(required = false) PeriodicRequest request) {
+        if (request == null) request = new PeriodicRequest();
+        return ResponseEntity.accepted().body(loadRunnerService.startPeriodic(request));
+    }
+
+    @PostMapping("/periodic/stop")
+    public ResponseEntity<?> stopPeriodic() {
+        return ResponseEntity.ok(loadRunnerService.stopPeriodic());
+    }
+
+    @GetMapping("/periodic/status")
+    public ResponseEntity<?> periodicStatus() {
+        return ResponseEntity.ok(loadRunnerService.periodicStatus());
     }
 
     private Map<String, Object> toRunMap(LoadRun run) {

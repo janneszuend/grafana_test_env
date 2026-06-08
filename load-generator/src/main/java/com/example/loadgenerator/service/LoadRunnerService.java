@@ -2,6 +2,7 @@ package com.example.loadgenerator.service;
 
 import com.example.loadgenerator.model.LoadRequest;
 import com.example.loadgenerator.model.LoadRun;
+import com.example.loadgenerator.model.PeriodicRequest;
 import com.example.loadgenerator.model.ScenarioRequest;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -18,6 +19,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -247,5 +249,96 @@ public class LoadRunnerService {
         lr.setDurationSeconds(req.getDurationSeconds());
         lr.setConcurrency(3);
         return startRun(lr);
+    }
+
+    private final AtomicReference<ScheduledFuture<?>> periodicTask = new AtomicReference<>();
+    private final AtomicReference<PeriodicState> periodicState = new AtomicReference<>();
+
+    public synchronized Map<String, Object> startPeriodic(PeriodicRequest req) {
+        stopPeriodic();
+        PeriodicState state = new PeriodicState(req, Instant.now());
+        periodicState.set(state);
+        ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(
+                () -> sendPeriodicTransaction(state),
+                0,
+                Math.max(1, req.getIntervalSeconds()),
+                TimeUnit.SECONDS);
+        periodicTask.set(future);
+        log.info("Periodic transactions started: every {}s, type={}, account={}",
+                req.getIntervalSeconds(), req.getType(), req.getAccountId());
+        return periodicStatus();
+    }
+
+    public synchronized Map<String, Object> stopPeriodic() {
+        ScheduledFuture<?> future = periodicTask.getAndSet(null);
+        if (future != null) {
+            future.cancel(false);
+            log.info("Periodic transactions stopped");
+        }
+        PeriodicState state = periodicState.getAndSet(null);
+        if (state == null) {
+            return Map.of("status", "STOPPED");
+        }
+        return Map.of(
+                "status", "STOPPED",
+                "successCount", state.successCount.get(),
+                "failureCount", state.failureCount.get(),
+                "startedAt", state.startedAt.toString(),
+                "stoppedAt", Instant.now().toString()
+        );
+    }
+
+    public Map<String, Object> periodicStatus() {
+        PeriodicState state = periodicState.get();
+        if (state == null) {
+            return Map.of("status", "STOPPED");
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("status", "RUNNING");
+        out.put("intervalSeconds", state.request.getIntervalSeconds());
+        out.put("type", state.request.getType());
+        out.put("accountId", state.request.getAccountId());
+        out.put("toAccountId", state.request.getToAccountId());
+        out.put("amount", state.request.getAmount());
+        out.put("startedAt", state.startedAt.toString());
+        out.put("successCount", state.successCount.get());
+        out.put("failureCount", state.failureCount.get());
+        return out;
+    }
+
+    private void sendPeriodicTransaction(PeriodicState state) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            PeriodicRequest req = state.request;
+            String body;
+            if ("DEPOSIT".equalsIgnoreCase(req.getType())) {
+                body = String.format(Locale.ROOT,
+                        "{\"type\":\"DEPOSIT\",\"toAccountId\":\"%s\",\"amount\":%.2f}",
+                        req.getAccountId(), req.getAmount());
+            } else {
+                body = String.format(Locale.ROOT,
+                        "{\"type\":\"TRANSFER\",\"fromAccountId\":\"%s\",\"toAccountId\":\"%s\",\"amount\":%.2f}",
+                        req.getAccountId(), req.getToAccountId(), req.getAmount());
+            }
+            HttpEntity<String> entity = new HttpEntity<>(body, headers);
+            restTemplate.exchange(orderServiceUrl + "/api/transactions", HttpMethod.POST, entity, String.class);
+            state.successCount.incrementAndGet();
+        } catch (Exception e) {
+            state.failureCount.incrementAndGet();
+            log.warn("Periodic transaction failed: {}", e.getMessage());
+        }
+    }
+
+    private static class PeriodicState {
+        final PeriodicRequest request;
+        final Instant startedAt;
+        final AtomicInteger successCount = new AtomicInteger();
+        final AtomicInteger failureCount = new AtomicInteger();
+
+        PeriodicState(PeriodicRequest request, Instant startedAt) {
+            this.request = request;
+            this.startedAt = startedAt;
+        }
     }
 }
