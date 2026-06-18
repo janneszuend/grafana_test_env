@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: balance-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: balance-service
+  template:
+    metadata:
+      labels:
+        app: balance-service
+    spec:
+      containers:
+        - name: balance-service
+          image: banking-poc/balance-service:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          env:
+            - { name: OTEL_SERVICE_NAME,                       value: balance-service }
+            - { name: OTEL_RESOURCE_ATTRIBUTES,                value: service.namespace=banking-poc }
+            - { name: OTEL_EXPORTER_OTLP_ENDPOINT,             value: http://alloy:4317 }
+            - { name: OTEL_EXPORTER_OTLP_PROTOCOL,             value: grpc }
+            - { name: OTEL_LOGS_EXPORTER,                      value: none }
+            - { name: OTEL_METRICS_EXPORTER,                   value: otlp }
+            - { name: OTEL_TRACES_EXPORTER,                    value: otlp }
+            - { name: OTEL_INSTRUMENTATION_COMMON_EXCLUDED_URLS, value: "/actuator/*" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: balance-service
+spec:
+  selector:
+    app: balance-service
+  ports:
+    - { port: 8081, targetPort: 8081 }

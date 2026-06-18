@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: load-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: load-generator
+  template:
+    metadata:
+      labels:
+        app: load-generator
+    spec:
+      containers:
+        - name: load-generator
+          image: banking-poc/load-generator:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8090
+          env:
+            - { name: OTEL_SERVICE_NAME,                       value: load-generator }
+            - { name: OTEL_RESOURCE_ATTRIBUTES,                value: service.namespace=banking-poc }
+            - { name: OTEL_EXPORTER_OTLP_ENDPOINT,             value: http://alloy:4317 }
+            - { name: OTEL_EXPORTER_OTLP_PROTOCOL,             value: grpc }
+            - { name: OTEL_LOGS_EXPORTER,                      value: none }
+            - { name: OTEL_METRICS_EXPORTER,                   value: otlp }
+            - { name: OTEL_TRACES_EXPORTER,                    value: otlp }
+            - { name: OTEL_INSTRUMENTATION_COMMON_EXCLUDED_URLS, value: "/actuator/*" }
+            - { name: ORDER_SERVICE_URL,                       value: http://account-service:8080 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: load-generator
+spec:
+  selector:
+    app: load-generator
+  ports:
+    - { port: 8090, targetPort: 8090 }

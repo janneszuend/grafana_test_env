@@ -1,0 +1,196 @@
+// K8s-Variante der Alloy-Config.
+// Unterschied zu ../alloy/config.alloy: kein Docker-Host-Scrape (host.docker.internal:9323).
+// Service-DNS-Targets bleiben identisch — K8s-Service-DNS verhält sich gleich wie Docker-DNS.
+
+otelcol.receiver.otlp "default" {
+	grpc { }
+	http { }
+
+	output {
+		metrics = [otelcol.processor.resourcedetection.default.input]
+		logs    = [otelcol.processor.resourcedetection.default.input]
+		traces  = [otelcol.processor.resourcedetection.default.input]
+	}
+}
+
+otelcol.processor.resourcedetection "default" {
+	detectors = ["env", "system"]
+	system {
+		hostname_sources = ["os"]
+	}
+	output {
+		metrics = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+		logs    = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+		traces  = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+	}
+}
+
+otelcol.processor.transform "drop_unneeded_resource_attributes" {
+	error_mode = "ignore"
+	trace_statements {
+		context    = "resource"
+		statements = [
+			"set(resource.attributes[\"deployment.environment\"], \"dev\")",
+			"set(resource.attributes[\"service.namespace\"], \"banking-poc\")",
+			"set(resource.attributes[\"asserts.env\"], \"dev\")",
+			"set(resource.attributes[\"asserts.site\"], \"\")",
+			"set(resource.attributes[\"job\"], Concat([resource.attributes[\"service.namespace\"], resource.attributes[\"service.name\"]], \"/\"))",
+			"delete_key(resource.attributes, \"k8s.pod.start_time\")",
+			"delete_key(resource.attributes, \"os.description\")",
+			"delete_key(resource.attributes, \"os.type\")",
+			"delete_key(resource.attributes, \"process.command_args\")",
+			"delete_key(resource.attributes, \"process.executable.path\")",
+			"delete_key(resource.attributes, \"process.pid\")",
+			"delete_key(resource.attributes, \"process.runtime.description\")",
+			"delete_key(resource.attributes, \"process.runtime.name\")",
+			"delete_key(resource.attributes, \"process.runtime.version\")",
+		]
+	}
+
+	metric_statements {
+		context    = "resource"
+		statements = [
+			"set(resource.attributes[\"deployment.environment\"], \"dev\")",
+			"set(resource.attributes[\"service.namespace\"], \"banking-poc\")",
+			"set(resource.attributes[\"asserts.env\"], \"dev\")",
+			"set(resource.attributes[\"asserts.site\"], \"\")",
+			"set(resource.attributes[\"job\"], Concat([resource.attributes[\"service.namespace\"], resource.attributes[\"service.name\"]], \"/\"))",
+			"delete_key(resource.attributes, \"k8s.pod.start_time\")",
+			"delete_key(resource.attributes, \"os.description\")",
+			"delete_key(resource.attributes, \"os.type\")",
+			"delete_key(resource.attributes, \"process.command_args\")",
+			"delete_key(resource.attributes, \"process.executable.path\")",
+			"delete_key(resource.attributes, \"process.pid\")",
+			"delete_key(resource.attributes, \"process.runtime.description\")",
+			"delete_key(resource.attributes, \"process.runtime.name\")",
+			"delete_key(resource.attributes, \"process.runtime.version\")",
+		]
+	}
+
+	log_statements {
+		context    = "resource"
+		statements = [
+			"set(resource.attributes[\"deployment.environment\"], \"dev\")",
+			"set(resource.attributes[\"service.namespace\"], \"banking-poc\")",
+			"set(resource.attributes[\"asserts.env\"], \"dev\")",
+			"set(resource.attributes[\"asserts.site\"], \"\")",
+			"set(resource.attributes[\"job\"], Concat([resource.attributes[\"service.namespace\"], resource.attributes[\"service.name\"]], \"/\"))",
+			"delete_key(resource.attributes, \"k8s.pod.start_time\")",
+			"delete_key(resource.attributes, \"os.description\")",
+			"delete_key(resource.attributes, \"os.type\")",
+			"delete_key(resource.attributes, \"process.command_args\")",
+			"delete_key(resource.attributes, \"process.executable.path\")",
+			"delete_key(resource.attributes, \"process.pid\")",
+			"delete_key(resource.attributes, \"process.runtime.description\")",
+			"delete_key(resource.attributes, \"process.runtime.name\")",
+			"delete_key(resource.attributes, \"process.runtime.version\")",
+		]
+	}
+
+	output {
+		metrics = [otelcol.processor.transform.add_resource_attributes_as_metric_attributes.input]
+		logs    = [otelcol.processor.batch.default.input]
+		traces  = [
+			otelcol.processor.batch.default.input,
+			otelcol.connector.host_info.default.input,
+		]
+	}
+}
+
+otelcol.connector.host_info "default" {
+	host_identifiers = ["host.name"]
+
+	output {
+		metrics = [otelcol.processor.batch.default.input]
+	}
+}
+
+otelcol.processor.transform "add_resource_attributes_as_metric_attributes" {
+	error_mode = "ignore"
+
+	metric_statements {
+		context    = "datapoint"
+		statements = [
+			"set(attributes[\"deployment.environment\"], \"dev\")",
+			"set(attributes[\"service.version\"], resource.attributes[\"service.version\"])",
+		]
+	}
+
+	output {
+		metrics = [otelcol.processor.batch.default.input]
+	}
+}
+
+otelcol.processor.batch "default" {
+	output {
+		metrics = [otelcol.exporter.otlphttp.grafana_cloud.input]
+		logs    = [otelcol.exporter.otlphttp.grafana_cloud.input]
+		traces  = [otelcol.exporter.otlphttp.grafana_cloud.input]
+	}
+}
+
+otelcol.exporter.otlphttp "grafana_cloud" {
+	client {
+		endpoint = "https://otlp-gateway-prod-eu-central-0.grafana.net/otlp"
+		auth     = otelcol.auth.basic.grafana_cloud.handler
+	}
+}
+
+otelcol.auth.basic "grafana_cloud" {
+	username = sys.env("GRAFANA_APP_ID")
+	password = sys.env("GRAFANA_OTEL_API_KEY")
+}
+
+prometheus.scrape "services" {
+	targets = [
+		{"__address__" = "account-service:8080",       "job" = "banking-poc/account-service"},
+		{"__address__" = "balance-service:8081",       "job" = "banking-poc/balance-service"},
+		{"__address__" = "notification-service:8082",  "job" = "banking-poc/notification-service"},
+		{"__address__" = "load-generator:8090",        "job" = "banking-poc/load-generator"},
+	]
+	metrics_path    = "/actuator/prometheus"
+	scrape_interval = "15s"
+	forward_to      = [prometheus.relabel.asserts_enrich.receiver]
+}
+
+prometheus.relabel "asserts_enrich" {
+	forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+
+	rule {
+		source_labels = ["job"]
+		regex         = "banking-poc/(.+)"
+		target_label  = "service"
+		replacement   = "$1"
+	}
+
+	rule {
+		target_label = "namespace"
+		replacement  = "banking-poc"
+	}
+
+	rule {
+		target_label = "asserts_env"
+		replacement  = "dev"
+	}
+	rule {
+		target_label = "asserts_site"
+		replacement  = ""
+	}
+
+	rule {
+		source_labels = ["__name__"]
+		regex         = ".+_seconds_bucket"
+		target_label  = "asserts_metric_latency"
+		replacement   = "histogram_seconds"
+	}
+}
+
+prometheus.remote_write "grafana_cloud" {
+	endpoint {
+		url = sys.env("GRAFANA_PROMETHEUS_ENDPOINT")
+		basic_auth {
+			username = sys.env("GRAFANA_PROMETHEUS_APP_ID")
+			password = sys.env("GRAFANA_PROMETHEUS_API_KEY")
+		}
+	}
+}

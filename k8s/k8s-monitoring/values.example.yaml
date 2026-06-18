@@ -1,0 +1,79 @@
+cluster:
+  name: banking-poc-cluster
+destinations:
+  grafana-cloud-metrics:
+    type: prometheus
+    url: https://prometheus-prod-XX-prod-eu-central-0.grafana.net./api/prom/push
+    auth:
+      type: basic
+      username: "REPLACE_WITH_PROM_USERNAME"
+      password: REPLACE_WITH_GRAFANA_CLOUD_ACCESS_POLICY_TOKEN
+  grafana-cloud-logs:
+    type: loki
+    url: https://logs-prod-XXX.grafana.net./loki/api/v1/push
+    auth:
+      type: basic
+      username: "REPLACE_WITH_LOKI_USERNAME"
+      password: REPLACE_WITH_GRAFANA_CLOUD_ACCESS_POLICY_TOKEN
+clusterMetrics:
+  enabled: true
+  collector: alloy-metrics
+hostMetrics:
+  enabled: true
+  collector: alloy-metrics
+  linuxHosts:
+    enabled: true
+  windowsHosts:
+    enabled: true
+  energyMetrics:
+    enabled: true
+costMetrics:
+  enabled: true
+  collector: alloy-metrics
+clusterEvents:
+  enabled: true
+  collector: alloy-singleton
+podLogsViaLoki:
+  enabled: true
+  collector: alloy-logs
+integrations:
+  collector: alloy-metrics
+  alloy:
+    instances:
+      - name: alloy
+        labelSelectors:
+          app.kubernetes.io/name:
+            - alloy-metrics
+            - alloy-singleton
+            - alloy-logs
+collectors:
+  alloy-metrics:
+    presets:
+      - clustered
+      - statefulset
+  alloy-singleton:
+    presets:
+      - singleton
+  alloy-logs:
+    presets:
+      - filesystem-log-reader
+      - daemonset
+telemetryServices:
+  kube-state-metrics:
+    deploy: true
+  node-exporter:
+    deploy: true
+  windows-exporter:
+    deploy: true
+  opencost:
+    deploy: true
+    metricsSource: grafana-cloud-metrics
+    opencost:
+      exporter:
+        defaultClusterId: banking-poc-cluster
+      prometheus:
+        existingSecretName: grafana-cloud-metrics-grafana-k8s-monitoring
+        external:
+          url: https://prometheus-prod-XX-prod-eu-central-0.grafana.net./api/prom
+  kepler:
+    deploy: true
